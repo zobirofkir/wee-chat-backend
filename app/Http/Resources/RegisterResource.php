@@ -18,8 +18,7 @@ class RegisterResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'username' => $this->username,
-            'phone' => $this->phone,
-            'avatar' => $this->avatar,
+            'phone' => $this->phone
         ];
     }
 }
