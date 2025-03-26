@@ -9,6 +9,12 @@ use App\Services\Constructors\RegisterConstructor;
 
 class RegisterService implements RegisterConstructor
 {
+    /**
+     * Create new user
+     *
+     * @param RegisterRequest $request
+     * @return RegisterResource
+     */
     public function store(RegisterRequest $request): RegisterResource
     {
         $validatedData = $request->validated();

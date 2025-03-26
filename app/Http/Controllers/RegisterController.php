@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class RegisterController extends Controller
 {
+    /**
+     * Create new user
+     *
+     * @param RegisterRequest $request
+     * @return RegisterResource
+     */
     public function store(RegisterRequest $request) : RegisterResource
     {
         return RegisterFacade::store($request);
