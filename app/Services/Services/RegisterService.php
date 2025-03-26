@@ -11,10 +11,13 @@ class RegisterService implements RegisterConstructor
 {
     public function store(RegisterRequest $request): RegisterResource
     {
+        $validatedData = $request->validated();
+        if ($validatedData['avatar']) {
+            $path = $validatedData['avatar']->store('avatars', 'public');
+            $validatedData['avatar'] = $path;
+        }
         return RegisterResource::make(
-            User::create(
-                $request->validated()
-            )
+            User::create($validatedData)
         );
     }
 }
