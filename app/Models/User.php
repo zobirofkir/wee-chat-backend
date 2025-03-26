@@ -50,4 +50,14 @@ class User extends Authenticatable
             'avatar' => 'string',
         ];
     }
+
+    /**
+     * Get the token value for the "remember me" cookie.
+     *
+     * @return string
+     */
+    public function accessToken() : string
+    {
+        return $this->createToken('accessToken')->accessToken;
+    }
 }
