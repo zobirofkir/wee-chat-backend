@@ -1,17 +1,17 @@
 <?php
 
 use App\Http\Controllers\LogoutController;
-use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Route;
 
 /**
  * API routes
  */
-Route::middleware('auth:api')->prefix('auth')->group(function() {
-    
+Route::prefix('auth')->middleware('auth:api')->group(function () {
+
     /**
      * Logout the user
      */
     Route::post('logout', [LogoutController::class, 'logout']);
-});
 
+});
 require __DIR__ . '/config/auth.php';
