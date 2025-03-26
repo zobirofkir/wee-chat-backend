@@ -12,7 +12,7 @@ class RegisterService implements RegisterConstructor
     public function store(RegisterRequest $request): RegisterResource
     {
         $validatedData = $request->validated();
-        if ($validatedData['avatar']) {
+        if ($validatedData['avatar'] ?? null) {
             $path = $validatedData['avatar']->store('avatars', 'public');
             $validatedData['avatar'] = $path;
         }
