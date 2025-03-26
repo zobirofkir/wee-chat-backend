@@ -3,7 +3,7 @@
 namespace App\Services\Constructors;
 
 use App\Http\Requests\LoginRequest;
-use App\Http\Resources\LoginResource;
+use App\Models\User;
 
 interface LoginConstructor
 {
@@ -11,7 +11,7 @@ interface LoginConstructor
      * Login
      *
      * @param LoginRequest $request
-     * @return LoginResource
+     * @return User
      */
-    public function login(LoginRequest $request) : LoginResource;
+    public function login(LoginRequest $request) : User;
 }

@@ -13,5 +13,5 @@ interface RegisterConstructor
      * @param RegisterRequest $request
      * @return RegisterResource
      */
-    public function store(RegisterRequest $request) : RegisterResource;
+    public function register(RegisterRequest $request) : RegisterResource;
 }
