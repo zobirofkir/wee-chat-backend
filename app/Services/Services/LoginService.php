@@ -4,18 +4,28 @@ namespace App\Services\Services;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\LoginResource;
+use App\Models\User;
 use App\Services\Constructors\LoginConstructor;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class LoginService implements LoginConstructor
 {
-    public function login(LoginRequest $request): LoginResource
+    /**
+     * Méthode de connexion
+     *
+     * @param LoginRequest $request
+     * @return User
+     */
+    public function login(LoginRequest $request): User
     {
-        $validateDdata = $request->validated();
-        if (!Auth::attempt($validateDdata)) {
-            return new LoginResource(['error' => 'Invalid credentials']);
+        $request->validated();
+
+        $user = User::where("email", $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return abort(401, "Email ou mot de passe incorrects");
         }
-        $token = Auth::user()->createToken('token')->plainTextToken;
-        return new LoginResource(['token' => $token]);
+
+        return $user;
     }
 }

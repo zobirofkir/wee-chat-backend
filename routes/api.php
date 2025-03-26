@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\RegisterController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Routing\Route;
 
-Route::apiResource('auth/register', RegisterController::class);
+
+
+require __DIR__ . '/config/auth.php';

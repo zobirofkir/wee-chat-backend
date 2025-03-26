@@ -15,8 +15,8 @@ class RegisterController extends Controller
      * @param RegisterRequest $request
      * @return RegisterResource
      */
-    public function store(RegisterRequest $request) : RegisterResource
+    public function register(RegisterRequest $request) : RegisterResource
     {
-        return RegisterFacade::store($request);
+        return RegisterFacade::register($request);
     }
 }
