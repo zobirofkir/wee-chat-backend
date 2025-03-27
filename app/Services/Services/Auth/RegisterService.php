@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Services;
+namespace App\Services\Services\Auth;
 
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\RegisterResource;
 use App\Models\User;
-use App\Services\Constructors\RegisterConstructor;
+use App\Services\Constructors\Auth\RegisterConstructor;
 
 class RegisterService implements RegisterConstructor
 {
