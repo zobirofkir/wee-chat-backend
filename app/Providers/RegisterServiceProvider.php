@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Resources\RegisterResource;
-use App\Services\Services\RegisterService;
+use App\Services\Services\Auth\RegisterService;
 use Illuminate\Support\ServiceProvider;
 
 class RegisterServiceProvider extends ServiceProvider
