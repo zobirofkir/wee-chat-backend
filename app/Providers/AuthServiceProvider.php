@@ -12,7 +12,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind('AuthService', AuthService::class);
+        $this->app->singleton('AuthService', AuthService::class);
     }
 
     /**
