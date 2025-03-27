@@ -87,27 +87,42 @@
                                 <label for="email" class="form-label">Email Address</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                    <input id="email" type="email" class="form-control"
+                                    <input id="email" type="email" class="form-control @error('email') is-invalid @enderror"
                                         name="email" value="{{ $email ?? old('email') }}" required autocomplete="email" autofocus>
                                 </div>
+                                @error('email')
+                                    <div class="invalid-feedback d-block">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
 
                             <div class="mb-3">
                                 <label for="password" class="form-label">New Password</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input id="password" type="password" class="form-control password-input"
+                                    <input id="password" type="password" class="form-control password-input @error('password') is-invalid @enderror"
                                         name="password" required autocomplete="new-password">
                                 </div>
+                                @error('password')
+                                    <div class="invalid-feedback d-block">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
 
                             <div class="mb-4">
                                 <label for="password-confirm" class="form-label">Confirm Password</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                                    <input id="password-confirm" type="password" class="form-control password-input"
+                                    <input id="password-confirm" type="password" class="form-control password-input @error('password_confirmation') is-invalid @enderror"
                                         name="password_confirmation" required autocomplete="new-password">
                                 </div>
+                                @error('password_confirmation')
+                                    <div class="invalid-feedback d-block">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
 
                             <div class="d-grid gap-2">
@@ -116,6 +131,18 @@
                                 </button>
                             </div>
                         </form>
+
+                        @session('success')
+                            <div class="alert alert-success mt-3">
+                                {{ session('success') }}
+                            </div>
+                        @endsession
+
+                        @if(session('status'))
+                            <div class="alert alert-success mt-3">
+                                {{ session('status') }}
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
