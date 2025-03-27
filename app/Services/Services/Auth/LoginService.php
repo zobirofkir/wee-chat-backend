@@ -18,11 +18,11 @@ class LoginService implements LoginConstructor
      */
     public function login(LoginRequest $request): User
     {
-        $request->validated();
+        $validated = $request->validated();
 
-        $user = User::where("email", $request->email)->first();
+        $user = User::where("email", $validated['email'])->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             return abort(401, "Email ou mot de passe incorrects");
         }
 
