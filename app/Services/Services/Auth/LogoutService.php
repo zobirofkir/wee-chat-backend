@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Services\Services;
+namespace App\Services\Services\Auth;
 
-use App\Services\Constructors\LogoutConstructor;
+use App\Services\Constructors\Auth\LogoutConstructor;
 use Illuminate\Support\Facades\Auth;
 
 class LogoutService implements LogoutConstructor

@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\LoginResource;
-use App\Services\Facades\LoginFacade;
+use App\Services\Facades\Auth\LoginFacade;
 
 class LoginController extends Controller
 {
