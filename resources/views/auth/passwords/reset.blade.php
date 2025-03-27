@@ -132,15 +132,19 @@
                             </div>
                         </form>
 
-                        @session('success')
-                            <div class="alert alert-success mt-3">
-                                {{ session('success') }}
+                        @if(session('success'))
+                            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>Success!</strong> {{ session('success') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
-                        @endsession
+                        @endif
 
                         @if(session('status'))
-                            <div class="alert alert-success mt-3">
-                                {{ session('status') }}
+                            <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>Success!</strong> {{ session('status') }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         @endif
                     </div>
