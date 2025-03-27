@@ -21,7 +21,7 @@ class ForgetPasswordController extends Controller
      * Send a reset link to the given user.
      *
      * @param  \App\Http\Requests\Auth\ForgotPasswordRequest  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Response
      */
     public function sendResetLinkEmail(ForgotPasswordRequest $request)
     {
@@ -30,8 +30,8 @@ class ForgetPasswordController extends Controller
         ]);
 
         return $status === Password::RESET_LINK_SENT
-            ? response()->json(['message' => __($status)], 200)
-            : response()->json(['error' => __($status)], 422);
+            ? back()->with('status', __($status))
+            : back()->withErrors(['email' => __($status)]);
     }
 
     /**
@@ -51,7 +51,7 @@ class ForgetPasswordController extends Controller
      * Reset the given user's password.
      *
      * @param  \App\Http\Requests\Auth\ResetPasswordRequest  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\Response
      */
     public function resetPassword(ResetPasswordRequest $request)
     {
@@ -69,7 +69,7 @@ class ForgetPasswordController extends Controller
         );
 
         return $status === Password::PASSWORD_RESET
-            ? response()->json(['message' => __($status)], 200)
-            : response()->json(['error' => __($status)], 422);
+            ? redirect()->back()->with('status', __($status))
+            : back()->withErrors(['email' => __($status)]);
     }
 }
