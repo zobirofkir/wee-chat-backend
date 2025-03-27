@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\ForgetPasswordController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\UpdateCurrentAuthUserController;
 use Illuminate\Support\Facades\Route;
@@ -8,27 +9,44 @@ use Illuminate\Support\Facades\Route;
 /**
  * API routes
  */
-Route::prefix('auth')->middleware('auth:api')->group(function () {
+Route::prefix('auth')->group(function () {
 
     /**
-     * Logout the user
+     * Forgot Password
      */
-    Route::post('logout', [LogoutController::class, 'logout']);
+    Route::post('forgot-password', [ForgetPasswordController::class, 'sendResetLinkEmail']);
 
     /**
-     * Update Current Authenticated User
+     * Reset Password
      */
-    Route::put('update', [UpdateCurrentAuthUserController::class, 'update']);
+    Route::post('reset-password', [ForgetPasswordController::class, 'resetPassword']);
+
+    /*************************************************************** Authenticated Routes *************************************************************/
 
     /**
-     * Show current authenticated user
+     * Routes that require authentication
      */
-    Route::get('show', [AuthController::class, 'show']);
+    Route::middleware('auth:api')->group(function () {
+        /**
+         * Logout the user
+         */
+        Route::post('logout', [LogoutController::class, 'logout']);
 
-    /**
-     * Delete current authenticated user
-     */
-    Route::delete('delete', [AuthController::class, 'delete']);
+        /**
+         * Update Current Authenticated User
+         */
+        Route::put('update', [UpdateCurrentAuthUserController::class, 'update']);
 
+        /**
+         * Show current authenticated user
+         */
+        Route::get('show', [AuthController::class, 'show']);
+
+        /**
+         * Delete current authenticated user
+         */
+        Route::delete('delete', [AuthController::class, 'delete']);
+    });
 });
+
 require __DIR__ . '/config/auth.php';
