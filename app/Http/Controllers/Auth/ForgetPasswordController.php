@@ -42,9 +42,11 @@ class ForgetPasswordController extends Controller
      */
     public function showResetForm(Request $request, $token = null)
     {
-        return view('auth.passwords.reset')->with(
-            ['token' => $token, 'email' => $request->email]
-        );
+        return view('auth.passwords.reset')->with([
+            'token' => $token,
+            'email' => $request->email,
+            'errors' => session()->get('errors') ?: new \Illuminate\Support\ViewErrorBag
+        ]);
     }
 
     /**
@@ -69,7 +71,7 @@ class ForgetPasswordController extends Controller
         );
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->back()->with('status', __($status))
+            ? redirect()->back()->with('success', 'Your password has been reset!')
             : back()->withErrors(['email' => __($status)]);
     }
 }
