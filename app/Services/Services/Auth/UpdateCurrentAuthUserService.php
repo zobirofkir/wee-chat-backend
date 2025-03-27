@@ -15,9 +15,9 @@ class UpdateCurrentAuthUserService implements UpdateCurrentAuthUserConstructor
      * Update Current Authenticated User
      *
      * @param UpdateCurrentAuthUserRequest $request
-     * @return UpdateCurrentAuthUserResource
+     * @return User
      */
-    public function update(UpdateCurrentAuthUserRequest $request, User $user): UpdateCurrentAuthUserResource
+    public function update(UpdateCurrentAuthUserRequest $request, User $user): User
     {
         $data = $request->validated();
 
@@ -38,8 +38,6 @@ class UpdateCurrentAuthUserService implements UpdateCurrentAuthUserConstructor
 
         $user->update($data);
 
-        return UpdateCurrentAuthUserResource::make(
-            $user->refresh()
-        );
+        return $user->refresh();
     }
 }

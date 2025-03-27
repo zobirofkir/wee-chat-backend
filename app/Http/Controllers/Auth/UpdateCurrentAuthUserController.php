@@ -4,14 +4,25 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateCurrentAuthUserRequest;
+use App\Http\Resources\UpdateCurrentAuthUserResource;
 use App\Models\User;
 use App\Services\Facades\Auth\UpdateCurrentAuthUserFacade;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateCurrentAuthUserController extends Controller
 {
-    public function update(UpdateCurrentAuthUserRequest $request, User $user)
+    /**
+     * Update Current Authenticated User
+     *
+     * @param UpdateCurrentAuthUserRequest $request
+     * @return UpdateCurrentAuthUserResource
+     */
+    public function update(UpdateCurrentAuthUserRequest $request) : UpdateCurrentAuthUserResource
     {
-        return UpdateCurrentAuthUserFacade::update($request, $user);
+        $user = Auth::user();
+        $user = UpdateCurrentAuthUserFacade::update($request, $user);
+
+        return UpdateCurrentAuthUserResource::make($user);
     }
 }
