@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services\Services;
+namespace App\Services\Services\Auth;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Resources\LoginResource;
 use App\Models\User;
-use App\Services\Constructors\LoginConstructor;
+use App\Services\Constructors\Auth\LoginConstructor;
 use Illuminate\Support\Facades\Hash;
 
 class LoginService implements LoginConstructor

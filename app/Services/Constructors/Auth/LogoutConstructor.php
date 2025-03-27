@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Constructors;
+namespace App\Services\Constructors\Auth;
 
 interface LogoutConstructor
 {

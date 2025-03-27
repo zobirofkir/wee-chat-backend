@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
-use App\Services\Facades\LogoutFacade;
+use App\Http\Controllers\Controller;
+use App\Services\Facades\Auth\LogoutFacade;
 use Illuminate\Http\Request;
 
 class LogoutController extends Controller

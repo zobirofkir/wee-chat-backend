@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\Services\LogoutService;
+use App\Services\Services\Auth\LogoutService;
 use Illuminate\Support\ServiceProvider;
 
 class LogoutServiceProvider extends ServiceProvider
