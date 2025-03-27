@@ -6,15 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\Auth\PasswordResetResource;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Config;
 
 class ForgetPasswordController extends Controller
 {
+    public function __construct()
+    {
+        Config::set('auth.defaults.passwords', 'users');
+    }
+
     /**
      * Send a reset link to the given user.
      *
      * @param  \App\Http\Requests\Auth\ForgotPasswordRequest  $request
-     * @return \App\Http\Resources\Auth\PasswordResetResource
+     * @return \Illuminate\Http\JsonResponse
      */
     public function sendResetLinkEmail(ForgotPasswordRequest $request)
     {
@@ -22,19 +29,29 @@ class ForgetPasswordController extends Controller
             'email' => $request['email']
         ]);
 
-        return new PasswordResetResource([
-            'status' => $status === Password::RESET_LINK_SENT ? 'success' : 'error',
-            'message' => $status === Password::RESET_LINK_SENT
-                ? 'Reset link sent to your email'
-                : 'Unable to send reset link'
-        ]);
+        return $status === Password::RESET_LINK_SENT
+            ? response()->json(['message' => __($status)], 200)
+            : response()->json(['error' => __($status)], 422);
     }
 
     /**
-     * Reset the user's password.
+     * Display the password reset view for the given token.
+     *
+     * @param  string  $token
+     * @return \Illuminate\View\View
+     */
+    public function showResetForm(Request $request, $token = null)
+    {
+        return view('auth.passwords.reset')->with(
+            ['token' => $token, 'email' => $request->email]
+        );
+    }
+
+    /**
+     * Reset the given user's password.
      *
      * @param  \App\Http\Requests\Auth\ResetPasswordRequest  $request
-     * @return \App\Http\Resources\Auth\PasswordResetResource
+     * @return \Illuminate\Http\JsonResponse
      */
     public function resetPassword(ResetPasswordRequest $request)
     {
@@ -51,11 +68,8 @@ class ForgetPasswordController extends Controller
             }
         );
 
-        return new PasswordResetResource([
-            'status' => $status === Password::PASSWORD_RESET ? 'success' : 'error',
-            'message' => $status === Password::PASSWORD_RESET
-                ? 'Password has been reset'
-                : 'Unable to reset password'
-        ]);
+        return $status === Password::PASSWORD_RESET
+            ? response()->json(['message' => __($status)], 200)
+            : response()->json(['error' => __($status)], 422);
     }
 }

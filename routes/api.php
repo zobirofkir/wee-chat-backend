@@ -10,17 +10,7 @@ use Illuminate\Support\Facades\Route;
  * API routes
  */
 Route::prefix('auth')->group(function () {
-
-    /**
-     * Forgot Password
-     */
-    Route::post('forgot-password', [ForgetPasswordController::class, 'sendResetLinkEmail']);
-
-    /**
-     * Reset Password
-     */
-    Route::post('reset-password', [ForgetPasswordController::class, 'resetPassword']);
-
+    
     /*************************************************************** Authenticated Routes *************************************************************/
 
     /**
@@ -49,4 +39,12 @@ Route::prefix('auth')->group(function () {
     });
 });
 
+/**
+ * Auth Routes
+ */
 require __DIR__ . '/config/auth.php';
+
+/**
+ * Forget Passwçrd Routes
+ */
+require __DIR__ . '/config/password.php';
