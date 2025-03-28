@@ -40,7 +40,7 @@ class UpdateCurrentAuthUserRequest extends FormRequest
             ],
             'avatar' => "nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048",
             'phone' => "nullable|string|max:255",
-            'password' => "nullable|string|min:8",
+            'password' => "nullable|string|min:8|confirmed",
             'account_type' => "required|string|in:free,premium",
             'location' => "nullable|string|max:255",
         ];
