@@ -41,6 +41,8 @@ class UpdateCurrentAuthUserRequest extends FormRequest
             'avatar' => "nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048",
             'phone' => "nullable|string|max:255",
             'password' => "nullable|string|min:8",
+            'account_type' => "required|string|in:free,premium",
+            'location' => "nullable|string|max:255",
         ];
     }
 
@@ -60,6 +62,9 @@ class UpdateCurrentAuthUserRequest extends FormRequest
             'username.max' => 'Username must not exceed 255 characters',
             'name.max' => 'Name must not exceed 255 characters',
             'password.min' => 'Password must be at least 8 characters',
+            'account_type.required' => 'Account type is required',
+            'account_type.in' => 'Account type must be free or premium',
+            'location.max' => 'Location must not exceed 255 characters',
         ];
     }
 }
