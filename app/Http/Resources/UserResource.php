@@ -20,6 +20,8 @@ class UserResource extends JsonResource
             'username' => $this->username,
             'phone' => $this->phone,
             'avatar' => asset('storage/' . $this->avatar),
+            'account_type' => $this->account_type,
+            'location' => $this->location
         ];
     }
 }
