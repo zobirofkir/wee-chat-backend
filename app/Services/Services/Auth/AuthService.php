@@ -17,6 +17,9 @@ class AuthService implements AuthConstructor
      */
     public function show(User $user): UserResource
     {
+        if (!$user) {
+            throw new \Exception('User not authenticated');
+        }
         return UserResource::make($user);
     }
 
@@ -28,6 +31,9 @@ class AuthService implements AuthConstructor
      */
     public function delete(User $user): bool
     {
+        if (!$user) {
+            throw new \Exception('User not authenticated');
+        }
         $user->delete();
         return true;
     }
