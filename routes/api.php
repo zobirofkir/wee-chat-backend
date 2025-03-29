@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgetPasswordController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\UpdateCurrentAuthUserController;
+use App\Http\Controllers\GithubThemeController;
 use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,11 @@ Route::prefix('auth')->group(function () {
          * Show store
          */
         Route::get('/store', [StoreController::class, 'show']);
+
+        /**
+         * Get themes
+         */
+        Route::get('/themes', [GithubThemeController::class, 'index']);
     });
 });
 
