@@ -11,4 +11,15 @@ class GithubThemeController extends Controller
     {
         return GithubThemeFacade::index();
     }
+
+    /**
+     * Get a specific theme for testing
+     *
+     * @param string $themeName
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function testTheme($themeName)
+    {
+        return GithubThemeFacade::getTestTheme($themeName);
+    }
 }

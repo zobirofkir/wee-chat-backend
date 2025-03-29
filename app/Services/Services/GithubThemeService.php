@@ -23,7 +23,8 @@ class GithubThemeService implements GithubThemeConstructor
                         'id' => $item['sha'],
                         'name' => $item['name'],
                         'path' => $item['path'],
-                        'url' => $item['html_url']
+                        'url' => $item['html_url'],
+                        'test_url' => $this->generateTestUrl($item['name'])
                     ];
                 })
                 ->values();
@@ -38,5 +39,46 @@ class GithubThemeService implements GithubThemeConstructor
             'success' => false,
             'message' => 'Unable to fetch themes'
         ], 500);
+    }
+
+    /**
+     * Generate a test URL for a theme
+     *
+     * @param string $themeName
+     * @return string
+     */
+    protected function generateTestUrl($themeName)
+    {
+        // You can customize this URL structure based on your needs
+        return url("/theme-preview/{$themeName}");
+    }
+
+    /**
+     * Get a specific theme for testing
+     *
+     * @param string $themeName
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTestTheme($themeName)
+    {
+        $response = Http::get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
+
+        if ($response->successful()) {
+            $contents = $response->json();
+
+            return response()->json([
+                'success' => true,
+                'theme' => [
+                    'name' => $themeName,
+                    'files' => $contents,
+                    'preview_url' => $this->generateTestUrl($themeName)
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Unable to fetch theme details'
+        ], 404);
     }
 }
