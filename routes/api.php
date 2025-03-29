@@ -48,6 +48,11 @@ Route::prefix('auth')->group(function () {
          * Get themes
          */
         Route::get('/themes', [GithubThemeController::class, 'index']);
+
+        /**
+         * Test a specific theme
+         */
+        Route::get('/themes/{themeName}/test', [GithubThemeController::class, 'testTheme']);
     });
 });
 
