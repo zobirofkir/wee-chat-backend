@@ -24,7 +24,9 @@ class GithubThemeService implements GithubThemeConstructor
                         'name' => $item['name'],
                         'path' => $item['path'],
                         'url' => $item['html_url'],
-                        'test_url' => $this->generateTestUrl($item['name'])
+                        'test_url' => $this->generateTestUrl($item['name']),
+                        'type' => 'free',
+                        'category' => 'e-commerce'
                     ];
                 })
                 ->values();
