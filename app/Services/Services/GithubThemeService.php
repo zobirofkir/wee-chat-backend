@@ -20,6 +20,7 @@ class GithubThemeService implements GithubThemeConstructor
                 })
                 ->map(function ($item) {
                     return [
+                        'id' => $item['sha'],
                         'name' => $item['name'],
                         'path' => $item['path'],
                         'url' => $item['html_url']
