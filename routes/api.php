@@ -4,13 +4,14 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\ForgetPasswordController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\UpdateCurrentAuthUserController;
+use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 
 /**
  * API routes
  */
 Route::prefix('auth')->group(function () {
-    
+
     /*************************************************************** Authenticated Routes *************************************************************/
 
     /**
@@ -36,6 +37,11 @@ Route::prefix('auth')->group(function () {
          * Delete current authenticated user
          */
         Route::delete('delete', [AuthController::class, 'delete']);
+
+        /**
+         * Show store
+         */
+        Route::get('/store', [StoreController::class, 'show']);
     });
 });
 
