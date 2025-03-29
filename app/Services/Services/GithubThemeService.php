@@ -49,7 +49,7 @@ class GithubThemeService implements GithubThemeConstructor
      */
     public function generateTestUrl($themeName)
     {
-        return url("/theme-preview/{$themeName}");
+        return "https://zobirofkir.github.io/wee-build-themes/{$themeName}";
     }
 
     /**
