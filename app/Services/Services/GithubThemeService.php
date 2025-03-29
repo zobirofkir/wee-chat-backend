@@ -47,7 +47,7 @@ class GithubThemeService implements GithubThemeConstructor
      * @param string $themeName
      * @return string
      */
-    protected function generateTestUrl($themeName)
+    public function generateTestUrl($themeName)
     {
         // You can customize this URL structure based on your needs
         return url("/theme-preview/{$themeName}");
