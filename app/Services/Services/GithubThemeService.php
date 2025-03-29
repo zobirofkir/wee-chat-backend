@@ -49,7 +49,6 @@ class GithubThemeService implements GithubThemeConstructor
      */
     public function generateTestUrl($themeName)
     {
-        // You can customize this URL structure based on your needs
         return url("/theme-preview/{$themeName}");
     }
 
