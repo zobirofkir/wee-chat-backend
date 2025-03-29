@@ -17,8 +17,8 @@ class StoreService implements StoreConstructor
      */
     public function createStore($user) : Store
     {
-        $storeName = "Store of " . $user->name;
-        $domain = Str::slug($user->name) . ".wee-build.com";
+        $storeName = "Store of " . $user->username;
+        $domain = Str::slug($user->username) . ".wee-build.com";
 
         return Store::create([
             'user_id' => $user->id,
@@ -35,7 +35,7 @@ class StoreService implements StoreConstructor
     public function show(Request $request)
     {
         return response()->json([
-            'user' => $request->user()->load('stores'),
+            'user' => $request->user()->load('store'),
         ]);
     }
 }
