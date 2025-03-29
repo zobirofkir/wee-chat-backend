@@ -8,7 +8,13 @@ use Illuminate\Support\Str;
 
 class StoreService implements StoreConstructor
 {
-    public function createStore($user)
+    /**
+     * Create store
+     *
+     * @param [type] $user
+     * @return Store
+     */
+    public function createStore($user) : Store
     {
         $storeName = "Store of " . $user->name;
         $domain = Str::slug($user->name) . ".mystore.com";
