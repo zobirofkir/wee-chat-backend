@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Services;
+namespace App\Services\Services\Store;
 
 use App\Services\Constructors\GithubThemeConstructor;
 use Illuminate\Support\Facades\Http;

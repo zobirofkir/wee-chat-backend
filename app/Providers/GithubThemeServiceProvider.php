@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\Services\GithubThemeService;
+use App\Services\Services\Store\GithubThemeService;
 use Illuminate\Support\ServiceProvider;
 
 class GithubThemeServiceProvider extends ServiceProvider

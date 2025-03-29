@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Observers\UserObserver;
-use App\Services\Services\StoreService;
+use App\Services\Services\Store\StoreService;
 use Illuminate\Support\ServiceProvider;
 
 class StoreServiceProvider extends ServiceProvider
