@@ -60,7 +60,6 @@ class StoreService implements StoreConstructor
             ], 404);
         }
 
-        // Update store with theme information
         $store->update([
             'theme' => $themeName,
             'theme_applied_at' => now(),

@@ -55,7 +55,6 @@ class GithubThemeService implements GithubThemeConstructor
                 })
                 ->values();
 
-            // Store in cache
             Cache::put($cacheKey, $themes, $this->cacheTtl);
 
             return response()->json([
@@ -135,7 +134,6 @@ class GithubThemeService implements GithubThemeConstructor
     {
         Cache::forget('github_themes_list');
 
-        // Clear individual theme caches
         $keys = Redis::keys('laravel_cache:github_theme_*');
         foreach ($keys as $key) {
             $cacheKey = str_replace('laravel_cache:', '', $key);
@@ -175,7 +173,6 @@ class GithubThemeService implements GithubThemeConstructor
             ], 404);
         }
 
-        // Get theme details
         $themeDetails = $this->getThemeDetails($themeName);
 
         if (!$themeDetails['success']) {
@@ -185,7 +182,6 @@ class GithubThemeService implements GithubThemeConstructor
             ], 404);
         }
 
-        // Update store with theme information
         $store->update([
             'theme' => $themeName,
             'theme_applied_at' => now(),
