@@ -7,6 +7,7 @@ use App\Services\Facades\StoreFacade;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -16,6 +17,20 @@ class GithubThemeService implements GithubThemeConstructor
      * Cache TTL in seconds (1 hour)
      */
     protected $cacheTtl = 3600;
+
+    /**
+     * Get GitHub API headers with authentication if available
+     *
+     * @return array
+     */
+    protected function getGithubHeaders(): array
+    {
+        $headers = [];
+        if (config('services.github.token')) {
+            $headers['Authorization'] = 'token ' . config('services.github.token');
+        }
+        return $headers;
+    }
 
     /**
      * Display a listing of the resource.
@@ -34,41 +49,62 @@ class GithubThemeService implements GithubThemeConstructor
             ]);
         }
 
-        $response = Http::get('https://api.github.com/repos/zobirofkir/wee-build-themes/contents');
+        try {
+            $response = Http::withHeaders($this->getGithubHeaders())
+                ->get('https://api.github.com/repos/zobirofkir/wee-build-themes/contents');
 
-        if ($response->successful()) {
-            $contents = $response->json();
+            if ($response->successful()) {
+                $contents = $response->json();
 
-            $themes = collect($contents)
-                ->filter(function ($item) {
-                    return $item['type'] === 'dir';
-                })
-                ->map(function ($item) {
-                    return [
-                        'id' => $item['sha'],
-                        'name' => $item['name'],
-                        'path' => $item['path'],
-                        'url' => $item['html_url'],
-                        'test_url' => $this->generateTestUrl($item['name']),
-                        'type' => 'free',
-                        'category' => 'e-commerce'
-                    ];
-                })
-                ->values();
+                $themes = collect($contents)
+                    ->filter(function ($item) {
+                        return $item['type'] === 'dir';
+                    })
+                    ->map(function ($item) {
+                        return [
+                            'id' => $item['sha'],
+                            'name' => $item['name'],
+                            'path' => $item['path'],
+                            'url' => $item['html_url'],
+                            'test_url' => $this->generateTestUrl($item['name']),
+                            'type' => 'free',
+                            'category' => 'e-commerce'
+                        ];
+                    })
+                    ->values();
 
-            Cache::put($cacheKey, $themes, $this->cacheTtl);
+                Cache::put($cacheKey, $themes, $this->cacheTtl);
+
+                return response()->json([
+                    'success' => true,
+                    'themes' => $themes,
+                    'source' => 'api'
+                ]);
+            }
+
+            $errorMessage = 'Unable to fetch themes';
+            if ($response->json('message')) {
+                $errorMessage = $response->json('message');
+            }
+
+            Log::error('GitHub API error: ' . $errorMessage, [
+                'status' => $response->status(),
+                'response' => $response->json()
+            ]);
 
             return response()->json([
-                'success' => true,
-                'themes' => $themes,
-                'source' => 'api'
-            ]);
-        }
+                'success' => false,
+                'message' => $errorMessage,
+                'status_code' => $response->status()
+            ], $response->status());
+        } catch (\Exception $e) {
+            Log::error('GitHub API exception: ' . $e->getMessage());
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Unable to fetch themes'
-        ], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -100,30 +136,54 @@ class GithubThemeService implements GithubThemeConstructor
             ]);
         }
 
-        $response = Http::get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
+        try {
+            $response = Http::withHeaders($this->getGithubHeaders())
+                ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
 
-        if ($response->successful()) {
-            $contents = $response->json();
+            if ($response->successful()) {
+                $contents = $response->json();
 
-            $themeData = [
-                'name' => $themeName,
-                'files' => $contents,
-                'preview_url' => $this->generateTestUrl($themeName)
-            ];
+                $themeData = [
+                    'name' => $themeName,
+                    'files' => $contents,
+                    'preview_url' => $this->generateTestUrl($themeName)
+                ];
 
-            Cache::put($cacheKey, $themeData, $this->cacheTtl);
+                Cache::put($cacheKey, $themeData, $this->cacheTtl);
+
+                return response()->json([
+                    'success' => true,
+                    'theme' => $themeData,
+                    'source' => 'api'
+                ]);
+            }
+
+            $errorMessage = 'Unable to fetch theme details';
+            if ($response->json('message')) {
+                $errorMessage = $response->json('message');
+            }
+
+            Log::error('GitHub API error when fetching theme: ' . $errorMessage, [
+                'theme' => $themeName,
+                'status' => $response->status(),
+                'response' => $response->json()
+            ]);
 
             return response()->json([
-                'success' => true,
-                'theme' => $themeData,
-                'source' => 'api'
+                'success' => false,
+                'message' => $errorMessage,
+                'status_code' => $response->status()
+            ], $response->status());
+        } catch (\Exception $e) {
+            Log::error('GitHub API exception when fetching theme: ' . $e->getMessage(), [
+                'theme' => $themeName
             ]);
-        }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Unable to fetch theme details'
-        ], 404);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -133,18 +193,27 @@ class GithubThemeService implements GithubThemeConstructor
      */
     public function clearCache() : JsonResponse
     {
-        Cache::forget('github_themes_list');
+        try {
+            Cache::forget('github_themes_list');
 
-        $keys = Redis::keys('laravel_cache:github_theme_*');
-        foreach ($keys as $key) {
-            $cacheKey = str_replace('laravel_cache:', '', $key);
-            Cache::forget($cacheKey);
+            $keys = Redis::keys('laravel_cache:github_theme_*');
+            foreach ($keys as $key) {
+                $cacheKey = str_replace('laravel_cache:', '', $key);
+                Cache::forget($cacheKey);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Theme cache cleared successfully'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error clearing theme cache: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error clearing cache: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Theme cache cleared successfully'
-        ]);
     }
 
     /**
@@ -223,12 +292,7 @@ class GithubThemeService implements GithubThemeConstructor
         }
 
         try {
-            $headers = [];
-            if (config('services.github.token')) {
-                $headers['Authorization'] = 'token ' . config('services.github.token');
-            }
-
-            $response = Http::withHeaders($headers)
+            $response = Http::withHeaders($this->getGithubHeaders())
                 ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
 
             if ($response->successful()) {
@@ -254,12 +318,22 @@ class GithubThemeService implements GithubThemeConstructor
                 $errorMessage = $response->json('message');
             }
 
+            Log::error('GitHub API error in getThemeDetails: ' . $errorMessage, [
+                'theme' => $themeName,
+                'status' => $response->status(),
+                'response' => $response->json()
+            ]);
+
             return [
                 'success' => false,
                 'message' => $errorMessage,
                 'status_code' => $response->status()
             ];
         } catch (\Exception $e) {
+            Log::error('GitHub API exception in getThemeDetails: ' . $e->getMessage(), [
+                'theme' => $themeName
+            ]);
+
             return [
                 'success' => false,
                 'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
