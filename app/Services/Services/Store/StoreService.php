@@ -38,4 +38,36 @@ class StoreService implements StoreConstructor
             'user' => $request->user()->load('store'),
         ]);
     }
+
+    /**
+     * Apply theme to store
+     *
+     * @param Request $request
+     * @param string $themeName
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function applyTheme(Request $request, string $themeName)
+    {
+        $user = $request->user();
+        $store = $user->store;
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found for this user'
+            ], 404);
+        }
+
+        // Update store with theme information
+        $store->update([
+            'theme' => $themeName,
+            'theme_applied_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Theme applied successfully',
+            'store' => $store
+        ]);
+    }
 }

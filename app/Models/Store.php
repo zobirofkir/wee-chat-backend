@@ -19,6 +19,19 @@ class Store extends Model
         'user_id',
         'name',
         'domain',
+        'theme',
+        'theme_applied_at',
+        'theme_data'
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'theme_applied_at' => 'datetime',
+        'theme_data' => 'array',
     ];
 
     /**

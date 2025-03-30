@@ -22,4 +22,16 @@ class GithubThemeController extends Controller
     {
         return GithubThemeFacade::getTestTheme($themeName);
     }
+
+    /**
+     * Apply a theme to the store
+     *
+     * @param Request $request
+     * @param string $themeName
+     * @return void
+     */
+    public function applyTheme(Request $request, string $themeName)
+    {
+        return GithubThemeFacade::applyTheme($request, $themeName);
+    }
 }

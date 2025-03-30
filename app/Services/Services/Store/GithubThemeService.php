@@ -6,6 +6,7 @@ use App\Services\Constructors\GithubThemeConstructor;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Request;
 
 class GithubThemeService implements GithubThemeConstructor
 {
@@ -139,5 +140,120 @@ class GithubThemeService implements GithubThemeConstructor
             'success' => true,
             'message' => 'Theme cache cleared successfully'
         ]);
+    }
+
+    /**
+     * Apply a theme to a user's store
+     *
+     * @param Request $request
+     * @param string $themeName
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function applyTheme(Request $request, string $themeName)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        $store = $user->store;
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found for this user'
+            ], 404);
+        }
+
+        // Get theme details
+        $themeDetails = $this->getThemeDetails($themeName);
+
+        if (!$themeDetails['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $themeDetails['message'] ?? 'Theme not found'
+            ], 404);
+        }
+
+        // Update store with theme information
+        $store->update([
+            'theme' => $themeName,
+            'theme_applied_at' => now(),
+            'theme_data' => json_encode($themeDetails['theme'])
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Theme applied successfully',
+            'store' => $store,
+            'theme_details' => $themeDetails['theme']
+        ]);
+    }
+
+    /**
+     * Get theme details (private helper method)
+     *
+     * @param string $themeName
+     * @return array
+     */
+    private function getThemeDetails(string $themeName)
+    {
+        $cacheKey = "github_theme_{$themeName}";
+
+        if (Cache::has($cacheKey)) {
+            return [
+                'success' => true,
+                'theme' => Cache::get($cacheKey),
+                'source' => 'cache'
+            ];
+        }
+
+        try {
+            $headers = [];
+            if (config('services.github.token')) {
+                $headers['Authorization'] = 'token ' . config('services.github.token');
+            }
+
+            $response = Http::withHeaders($headers)
+                ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
+
+            if ($response->successful()) {
+                $contents = $response->json();
+
+                $themeData = [
+                    'name' => $themeName,
+                    'files' => $contents,
+                    'preview_url' => $this->generateTestUrl($themeName)
+                ];
+
+                Cache::put($cacheKey, $themeData, $this->cacheTtl);
+
+                return [
+                    'success' => true,
+                    'theme' => $themeData,
+                    'source' => 'api'
+                ];
+            }
+
+            $errorMessage = 'Unable to fetch theme details';
+            if ($response->json('message')) {
+                $errorMessage = $response->json('message');
+            }
+
+            return [
+                'success' => false,
+                'message' => $errorMessage,
+                'status_code' => $response->status()
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
+            ];
+        }
     }
 }

@@ -45,14 +45,24 @@ Route::prefix('auth')->group(function () {
         Route::get('/store', [StoreController::class, 'show']);
 
         /**
-         * Get themes
+         * Theme routes
          */
-        Route::get('/themes', [GithubThemeController::class, 'index']);
+        Route::prefix('themes')->group(function () {
+            /**
+             * Get themes
+             */
+            Route::get('/', [GithubThemeController::class, 'index']);
 
-        /**
-         * Test a specific theme
-         */
-        Route::get('/themes/{themeName}/test', [GithubThemeController::class, 'testTheme']);
+            /**
+             * Test a specific theme
+             */
+            Route::get('/{themeName}/test', [GithubThemeController::class, 'testTheme']);
+
+            /**
+             * Apply a theme to the store
+             */
+            Route::post('/{themeName}/apply', [GithubThemeController::class, 'applyTheme']);
+        });
     });
 });
 
