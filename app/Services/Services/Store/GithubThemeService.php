@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class GithubThemeService implements GithubThemeConstructor
 {
@@ -15,7 +16,12 @@ class GithubThemeService implements GithubThemeConstructor
      */
     protected $cacheTtl = 3600;
 
-    public function index()
+    /**
+     * Display a listing of the resource.
+     *
+     * @return JsonResponse
+     */
+    public function index() : JsonResponse
     {
         $cacheKey = 'github_themes_list';
 
@@ -71,7 +77,7 @@ class GithubThemeService implements GithubThemeConstructor
      * @param string $themeName
      * @return string
      */
-    public function generateTestUrl($themeName)
+    public function generateTestUrl($themeName) : string
     {
         return "https://zobirofkir.github.io/wee-build-themes/{$themeName}";
     }
@@ -82,7 +88,7 @@ class GithubThemeService implements GithubThemeConstructor
      * @param string $themeName
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTestTheme($themeName)
+    public function getTestTheme($themeName) : JsonResponse
     {
         $cacheKey = "github_theme_{$themeName}";
 
@@ -125,7 +131,7 @@ class GithubThemeService implements GithubThemeConstructor
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function clearCache()
+    public function clearCache() : JsonResponse
     {
         Cache::forget('github_themes_list');
 
@@ -149,7 +155,7 @@ class GithubThemeService implements GithubThemeConstructor
      * @param string $themeName
      * @return \Illuminate\Http\JsonResponse
      */
-    public function applyTheme(Request $request, string $themeName)
+    public function applyTheme(Request $request, string $themeName) : JsonResponse
     {
         $user = $request->user();
 
