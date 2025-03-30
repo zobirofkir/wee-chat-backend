@@ -79,8 +79,18 @@ class StoreService implements StoreConstructor
      */
     public function show(Request $request) : JsonResponse
     {
+        $user = $request->user();
+        $store = $user->load('store')->store;
+
+        $themeData = null;
+        if ($store && $store->theme) {
+            $themeData = $this->getStoredThemeData($user->id, $store->theme);
+        }
+
         return response()->json([
-            'user' => $request->user()->load('store'),
+            'user' => $user,
+            'store' => $store,
+            'theme' => $themeData
         ]);
     }
 

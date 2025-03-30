@@ -21,7 +21,8 @@ class Store extends Model
         'domain',
         'theme',
         'theme_applied_at',
-        'theme_data'
+        'theme_data',
+        'theme_storage_path'
     ];
 
     /**

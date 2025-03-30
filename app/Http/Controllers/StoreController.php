@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\StoreResource;
 use App\Services\Facades\StoreFacade;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
