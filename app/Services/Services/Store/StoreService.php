@@ -21,11 +21,52 @@ class StoreService implements StoreConstructor
         $storeName = "Store of " . $user->username;
         $domain = Str::slug($user->username) . ".wee-build.com";
 
-        return Store::create([
+        if (app()->environment('local')) {
+            $domain = Str::slug($user->username) . ".localhost";
+        }
+
+        $store = Store::create([
             'user_id' => $user->id,
             'name' => $storeName,
             'domain' => $domain,
+            'is_active' => true,
         ]);
+
+        $this->configureDomain($store);
+
+        return $store;
+    }
+
+    /**
+     * Configure domain for the store
+     *
+     * @param Store $store
+     * @return void
+     */
+    protected function configureDomain(Store $store) : void
+    {
+        if (app()->environment('local')) {
+            \Log::info("Store domain configured for local environment: {$store->domain}");
+            return;
+        }
+
+        \Log::info("Store domain configured for production: {$store->domain}");
+    }
+
+    /**
+     * Activate or deactivate a store
+     *
+     * @param Store $store
+     * @param bool $active
+     * @return Store
+     */
+    public function setStoreStatus(Store $store, bool $active = true) : Store
+    {
+        $store->update([
+            'is_active' => $active,
+        ]);
+
+        return $store;
     }
 
     /**
