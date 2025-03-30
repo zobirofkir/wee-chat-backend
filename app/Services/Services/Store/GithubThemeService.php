@@ -183,13 +183,13 @@ class GithubThemeService implements GithubThemeConstructor
             ], 404);
         }
 
-        // Save theme data to local storage
+        // Save theme HTML files to local storage
         StoreFacade::saveThemeToStorage($user->id, $themeName, $themeDetails['theme']);
 
+        // Update store with theme information
         $store->update([
             'theme' => $themeName,
             'theme_applied_at' => now(),
-            'theme_data' => json_encode($themeDetails['theme']),
             'theme_storage_path' => StoreFacade::getThemeStoragePath($user->id, $themeName)
         ]);
 
@@ -197,7 +197,10 @@ class GithubThemeService implements GithubThemeConstructor
             'success' => true,
             'message' => 'Theme applied and saved successfully',
             'store' => $store,
-            'theme_details' => $themeDetails['theme']
+            'theme_details' => [
+                'name' => $themeName,
+                'preview_url' => url("themes/user_{$user->id}/{$themeName}/index.html")
+            ]
         ]);
     }
 

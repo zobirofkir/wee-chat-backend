@@ -62,6 +62,12 @@ Route::prefix('auth')->group(function () {
              * Apply a theme to the store
              */
             Route::post('/{themeName}/apply', [GithubThemeController::class, 'applyTheme']);
+
+            /**
+             * Serve theme files
+             */
+            Route::get('/user/{userId}/{themeName}/{filePath?}', [StoreController::class, 'serveThemeFile'])
+                ->where('filePath', '.*');
         });
     });
 });

@@ -22,7 +22,8 @@ class Store extends Model
         'theme',
         'theme_applied_at',
         'theme_data',
-        'theme_storage_path'
+        'theme_storage_path',
+        'is_active'
     ];
 
     /**
@@ -33,6 +34,7 @@ class Store extends Model
     protected $casts = [
         'theme_applied_at' => 'datetime',
         'theme_data' => 'array',
+        'is_active' => 'boolean',
     ];
 
     /**

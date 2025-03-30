@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 class StoreService implements StoreConstructor
 {
@@ -149,16 +150,103 @@ class StoreService implements StoreConstructor
             Storage::makeDirectory(dirname($storagePath), 0755, true);
         }
 
-        // If theme data is provided, save it
-        if ($themeData) {
-            return Storage::put($storagePath . '/theme.json', json_encode($themeData));
+        // If theme data is provided, save HTML files
+        if ($themeData && isset($themeData['files'])) {
+            $success = true;
+
+            // Create a metadata file with basic theme info
+            Storage::put($storagePath . '/theme-info.json', json_encode([
+                'name' => $themeName,
+                'installed_at' => now()->toDateTimeString(),
+            ]));
+
+            // Process each file from the theme
+            foreach ($themeData['files'] as $file) {
+                if ($file['type'] === 'file') {
+                    // Download the file content
+                    $fileContent = $this->downloadFileContent($file['download_url']);
+                    if ($fileContent) {
+                        // Save the file with its original name
+                        $filePath = $storagePath . '/' . $file['name'];
+                        $result = Storage::put($filePath, $fileContent);
+                        $success = $success && $result;
+                    }
+                } elseif ($file['type'] === 'dir') {
+                    // Create subdirectory for nested folders
+                    Storage::makeDirectory($storagePath . '/' . $file['name'], 0755, true);
+
+                    // Recursively download directory contents
+                    $this->downloadDirectory($userId, $themeName, $file['path']);
+                }
+            }
+
+            return $success;
         }
 
-        // If no theme data, create an empty theme file
-        return Storage::put($storagePath . '/theme.json', json_encode([
-            'name' => $themeName,
-            'installed_at' => now()->toDateTimeString(),
-        ]));
+        // If no theme data, create a basic index.html file
+        return Storage::put($storagePath . '/index.html', '<html><body><h1>Theme: ' . $themeName . '</h1><p>Installed at: ' . now()->toDateTimeString() . '</p></body></html>');
+    }
+
+    /**
+     * Download file content from GitHub
+     *
+     * @param string $url
+     * @return string|null
+     */
+    protected function downloadFileContent(string $url) : ?string
+    {
+        try {
+            $response = Http::get($url);
+            if ($response->successful()) {
+                return $response->body();
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to download theme file: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Download a directory and its contents recursively
+     *
+     * @param int $userId
+     * @param string $themeName
+     * @param string $path
+     * @return bool
+     */
+    protected function downloadDirectory(int $userId, string $themeName, string $path) : bool
+    {
+        $storagePath = $this->getThemeStoragePath($userId, $themeName);
+        $relativePath = str_replace($themeName . '/', '', $path);
+
+        try {
+            $response = Http::get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$path}");
+
+            if ($response->successful()) {
+                $contents = $response->json();
+
+                foreach ($contents as $item) {
+                    $itemPath = $storagePath . '/' . $relativePath . '/' . $item['name'];
+
+                    if ($item['type'] === 'file') {
+                        $fileContent = $this->downloadFileContent($item['download_url']);
+                        if ($fileContent) {
+                            Storage::put($itemPath, $fileContent);
+                        }
+                    } elseif ($item['type'] === 'dir') {
+                        Storage::makeDirectory($itemPath, 0755, true);
+                        $this->downloadDirectory($userId, $themeName, $item['path']);
+                    }
+                }
+
+                return true;
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to download theme directory: ' . $e->getMessage());
+        }
+
+        return false;
     }
 
     /**
@@ -182,14 +270,59 @@ class StoreService implements StoreConstructor
      */
     public function getStoredThemeData(int $userId, string $themeName) : ?array
     {
-        $storagePath = $this->getThemeStoragePath($userId, $themeName) . '/theme.json';
+        $storagePath = $this->getThemeStoragePath($userId, $themeName);
+        $infoPath = $storagePath . '/theme-info.json';
 
-        if (Storage::exists($storagePath)) {
-            $themeData = json_decode(Storage::get($storagePath), true);
-            return $themeData;
+        if (Storage::exists($infoPath)) {
+            $themeInfo = json_decode(Storage::get($infoPath), true);
+
+            // Get list of all files in the theme directory
+            $files = $this->getThemeFiles($storagePath);
+
+            return [
+                'name' => $themeName,
+                'installed_at' => $themeInfo['installed_at'] ?? now()->toDateTimeString(),
+                'files' => $files,
+                'preview_url' => url("themes/user_{$userId}/{$themeName}/index.html")
+            ];
         }
 
         return null;
+    }
+
+    /**
+     * Get all files in a theme directory
+     *
+     * @param string $path
+     * @return array
+     */
+    protected function getThemeFiles(string $path) : array
+    {
+        $files = [];
+
+        if (!Storage::exists($path)) {
+            return $files;
+        }
+
+        $allFiles = Storage::allFiles($path);
+
+        foreach ($allFiles as $file) {
+            // Skip the theme-info.json file
+            if (basename($file) === 'theme-info.json') {
+                continue;
+            }
+
+            $relativePath = str_replace($path . '/', '', $file);
+            $files[] = [
+                'name' => basename($file),
+                'path' => $relativePath,
+                'full_path' => $file,
+                'size' => Storage::size($file),
+                'type' => 'file'
+            ];
+        }
+
+        return $files;
     }
 
     /**
