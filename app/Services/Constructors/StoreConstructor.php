@@ -4,6 +4,7 @@ namespace App\Services\Constructors;
 
 use App\Models\Store;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 interface StoreConstructor
 {
@@ -22,4 +23,13 @@ interface StoreConstructor
      * @return void
      */
     public function show(Request $request);
+
+    /**
+     * Apply theme to store
+     *
+     * @param Request $request
+     * @param string $themeName
+     * @return JsonResponse
+     */
+    public function applyTheme(Request $request, string $themeName) : JsonResponse;
 }

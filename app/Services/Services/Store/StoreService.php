@@ -6,6 +6,7 @@ use App\Models\Store;
 use App\Services\Constructors\StoreConstructor;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class StoreService implements StoreConstructor
 {
@@ -46,7 +47,7 @@ class StoreService implements StoreConstructor
      * @param string $themeName
      * @return \Illuminate\Http\JsonResponse
      */
-    public function applyTheme(Request $request, string $themeName)
+    public function applyTheme(Request $request, string $themeName) : JsonResponse
     {
         $user = $request->user();
         $store = $user->store;
