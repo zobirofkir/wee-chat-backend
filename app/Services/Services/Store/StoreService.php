@@ -137,14 +137,14 @@ class StoreService implements StoreConstructor
     {
         $storagePath = $this->getThemeStoragePath($userId, $themeName);
 
-        if (!Storage::exists(dirname($storagePath))) {
-            Storage::makeDirectory(dirname($storagePath), 0755, true);
+        if (!Storage::disk('public')->exists(dirname($storagePath))) {
+            Storage::disk('public')->makeDirectory(dirname($storagePath), 0755, true);
         }
 
         if ($themeData && isset($themeData['files'])) {
             $success = true;
 
-            Storage::put($storagePath . '/theme-info.json', json_encode([
+            Storage::disk('public')->put($storagePath . '/theme-info.json', json_encode([
                 'name' => $themeName,
                 'installed_at' => now()->toDateTimeString(),
             ]));
@@ -154,11 +154,11 @@ class StoreService implements StoreConstructor
                     $fileContent = $this->downloadFileContent($file['download_url']);
                     if ($fileContent) {
                         $filePath = $storagePath . '/' . $file['name'];
-                        $result = Storage::put($filePath, $fileContent);
+                        $result = Storage::disk('public')->put($filePath, $fileContent);
                         $success = $success && $result;
                     }
                 } elseif ($file['type'] === 'dir') {
-                    Storage::makeDirectory($storagePath . '/' . $file['name'], 0755, true);
+                    Storage::disk('public')->makeDirectory($storagePath . '/' . $file['name'], 0755, true);
 
                     $this->downloadDirectory($userId, $themeName, $file['path']);
                 }
@@ -167,7 +167,7 @@ class StoreService implements StoreConstructor
             return $success;
         }
 
-        return Storage::put($storagePath . '/index.html', '<html><body><h1>Theme: ' . $themeName . '</h1><p>Installed at: ' . now()->toDateTimeString() . '</p></body></html>');
+        return Storage::disk('public')->put($storagePath . '/index.html', '<html><body><h1>Theme: ' . $themeName . '</h1><p>Installed at: ' . now()->toDateTimeString() . '</p></body></html>');
     }
 
     /**
@@ -215,10 +215,10 @@ class StoreService implements StoreConstructor
                     if ($item['type'] === 'file') {
                         $fileContent = $this->downloadFileContent($item['download_url']);
                         if ($fileContent) {
-                            Storage::put($itemPath, $fileContent);
+                            Storage::disk('public')->put($itemPath, $fileContent);
                         }
                     } elseif ($item['type'] === 'dir') {
-                        Storage::makeDirectory($itemPath, 0755, true);
+                        Storage::disk('public')->makeDirectory($itemPath, 0755, true, true);
                         $this->downloadDirectory($userId, $themeName, $item['path']);
                     }
                 }
@@ -256,8 +256,8 @@ class StoreService implements StoreConstructor
         $storagePath = $this->getThemeStoragePath($userId, $themeName);
         $infoPath = $storagePath . '/theme-info.json';
 
-        if (Storage::exists($infoPath)) {
-            $themeInfo = json_decode(Storage::get($infoPath), true);
+        if (Storage::disk('public')->exists($infoPath)) {
+            $themeInfo = json_decode(Storage::disk('public')->get($infoPath), true);
 
             // Get list of all files in the theme directory
             $files = $this->getThemeFiles($storagePath);
@@ -266,7 +266,7 @@ class StoreService implements StoreConstructor
                 'name' => $themeName,
                 'installed_at' => $themeInfo['installed_at'] ?? now()->toDateTimeString(),
                 'files' => $files,
-                'preview_url' => url("themes/user_{$userId}/{$themeName}/index.html")
+                'preview_url' => asset("storage/{$storagePath}/index.html")
             ];
         }
 
@@ -283,11 +283,11 @@ class StoreService implements StoreConstructor
     {
         $files = [];
 
-        if (!Storage::exists($path)) {
+        if (!Storage::disk('public')->exists($path)) {
             return $files;
         }
 
-        $allFiles = Storage::allFiles($path);
+        $allFiles = Storage::disk('public')->allFiles($path);
 
         foreach ($allFiles as $file) {
             if (basename($file) === 'theme-info.json') {
@@ -299,7 +299,7 @@ class StoreService implements StoreConstructor
                 'name' => basename($file),
                 'path' => $relativePath,
                 'full_path' => $file,
-                'size' => Storage::size($file),
+                'size' => Storage::disk('public')->size($file),
                 'type' => 'file'
             ];
         }
@@ -317,11 +317,11 @@ class StoreService implements StoreConstructor
     {
         $basePath = "themes/user_{$userId}";
 
-        if (!Storage::exists($basePath)) {
+        if (!Storage::disk('public')->exists($basePath)) {
             return [];
         }
 
-        $directories = Storage::directories($basePath);
+        $directories = Storage::disk('public')->directories($basePath);
         $themes = [];
 
         foreach ($directories as $directory) {
