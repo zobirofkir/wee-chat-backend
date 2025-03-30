@@ -4,10 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Services\Facades\GithubThemeFacade;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class GithubThemeController extends Controller
 {
-    public function index()
+    /**
+     * Get all themes
+     *
+     * @return JsonResponse
+     */
+    public function index() : JsonResponse
     {
         return GithubThemeFacade::index();
     }
@@ -18,7 +24,7 @@ class GithubThemeController extends Controller
      * @param string $themeName
      * @return \Illuminate\Http\JsonResponse
      */
-    public function testTheme($themeName)
+    public function testTheme($themeName) : JsonResponse
     {
         return GithubThemeFacade::getTestTheme($themeName);
     }
@@ -30,7 +36,7 @@ class GithubThemeController extends Controller
      * @param string $themeName
      * @return void
      */
-    public function applyTheme(Request $request, string $themeName)
+    public function applyTheme(Request $request, string $themeName) : JsonResponse
     {
         return GithubThemeFacade::applyTheme($request, $themeName);
     }
