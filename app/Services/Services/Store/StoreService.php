@@ -7,6 +7,7 @@ use App\Services\Constructors\StoreConstructor;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class StoreService implements StoreConstructor
 {
@@ -46,11 +47,11 @@ class StoreService implements StoreConstructor
     protected function configureDomain(Store $store) : void
     {
         if (app()->environment('local')) {
-            \Log::info("Store domain configured for local environment: {$store->domain}");
+            Log::info("Store domain configured for local environment: {$store->domain}");
             return;
         }
 
-        \Log::info("Store domain configured for production: {$store->domain}");
+        Log::info("Store domain configured for production: {$store->domain}");
     }
 
     /**
