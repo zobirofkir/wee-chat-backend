@@ -114,10 +114,8 @@ class StoreService implements StoreConstructor
             ], 404);
         }
 
-        // Get theme details from the request if available
         $themeData = $request->input('theme_data');
 
-        // Save theme locally
         $this->saveThemeToStorage($user->id, $themeName, $themeData);
 
         $store->update([
@@ -145,37 +143,29 @@ class StoreService implements StoreConstructor
     {
         $storagePath = $this->getThemeStoragePath($userId, $themeName);
 
-        // Create directory if it doesn't exist
         if (!Storage::exists(dirname($storagePath))) {
             Storage::makeDirectory(dirname($storagePath), 0755, true);
         }
 
-        // If theme data is provided, save HTML files
         if ($themeData && isset($themeData['files'])) {
             $success = true;
 
-            // Create a metadata file with basic theme info
             Storage::put($storagePath . '/theme-info.json', json_encode([
                 'name' => $themeName,
                 'installed_at' => now()->toDateTimeString(),
             ]));
 
-            // Process each file from the theme
             foreach ($themeData['files'] as $file) {
                 if ($file['type'] === 'file') {
-                    // Download the file content
                     $fileContent = $this->downloadFileContent($file['download_url']);
                     if ($fileContent) {
-                        // Save the file with its original name
                         $filePath = $storagePath . '/' . $file['name'];
                         $result = Storage::put($filePath, $fileContent);
                         $success = $success && $result;
                     }
                 } elseif ($file['type'] === 'dir') {
-                    // Create subdirectory for nested folders
                     Storage::makeDirectory($storagePath . '/' . $file['name'], 0755, true);
 
-                    // Recursively download directory contents
                     $this->downloadDirectory($userId, $themeName, $file['path']);
                 }
             }
@@ -183,7 +173,6 @@ class StoreService implements StoreConstructor
             return $success;
         }
 
-        // If no theme data, create a basic index.html file
         return Storage::put($storagePath . '/index.html', '<html><body><h1>Theme: ' . $themeName . '</h1><p>Installed at: ' . now()->toDateTimeString() . '</p></body></html>');
     }
 
@@ -307,7 +296,6 @@ class StoreService implements StoreConstructor
         $allFiles = Storage::allFiles($path);
 
         foreach ($allFiles as $file) {
-            // Skip the theme-info.json file
             if (basename($file) === 'theme-info.json') {
                 continue;
             }
