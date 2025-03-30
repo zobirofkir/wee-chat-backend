@@ -3,6 +3,7 @@
 namespace App\Services\Services\Store;
 
 use App\Services\Constructors\GithubThemeConstructor;
+use App\Services\Facades\StoreFacade;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
@@ -182,15 +183,19 @@ class GithubThemeService implements GithubThemeConstructor
             ], 404);
         }
 
+        // Save theme data to local storage
+        StoreFacade::saveThemeToStorage($user->id, $themeName, $themeDetails['theme']);
+
         $store->update([
             'theme' => $themeName,
             'theme_applied_at' => now(),
-            'theme_data' => json_encode($themeDetails['theme'])
+            'theme_data' => json_encode($themeDetails['theme']),
+            'theme_storage_path' => StoreFacade::getThemeStoragePath($user->id, $themeName)
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Theme applied successfully',
+            'message' => 'Theme applied and saved successfully',
             'store' => $store,
             'theme_details' => $themeDetails['theme']
         ]);
