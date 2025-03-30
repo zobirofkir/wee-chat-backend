@@ -32,8 +32,9 @@ class StoreService implements StoreConstructor
      * Show store
      *
      * @param Request $request
+     * @return JsonResponse
      */
-    public function show(Request $request)
+    public function show(Request $request) : JsonResponse
     {
         return response()->json([
             'user' => $request->user()->load('store'),

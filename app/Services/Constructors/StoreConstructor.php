@@ -20,9 +20,9 @@ interface StoreConstructor
      * Show store
      *
      * @param Request $request
-     * @return void
+     * @return JsonResponse
      */
-    public function show(Request $request);
+    public function show(Request $request) : JsonResponse;
 
     /**
      * Apply theme to store
