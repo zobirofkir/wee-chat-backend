@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\StoreResource;
+use App\Models\Store;
 use App\Services\Facades\StoreFacade;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -40,6 +41,39 @@ class StoreController extends Controller
 
         $file = Storage::get($path);
         $type = Storage::mimeType($path);
+
+        return response($file)->header('Content-Type', $type);
+    }
+
+    /**
+     * Serve theme files from the store's custom domain
+     *
+     * @param Request $request
+     * @param string $domain
+     * @param string|null $path
+     * @return \Illuminate\Http\Response
+     */
+    public function serveStoreTheme(Request $request, string $domain, string $path = null)
+    {
+        // Find the store by domain
+        $store = Store::where('domain', $domain)->first();
+
+        if (!$store || !$store->is_active || !$store->theme) {
+            abort(404);
+        }
+
+        // Default to index.html if no path is provided
+        $filePath = $path ?: 'index.html';
+
+        // Construct the storage path
+        $storagePath = "themes/user_{$store->user_id}/{$store->theme}/{$filePath}";
+
+        if (!Storage::exists($storagePath)) {
+            abort(404);
+        }
+
+        $file = Storage::get($storagePath);
+        $type = Storage::mimeType($storagePath);
 
         return response($file)->header('Content-Type', $type);
     }

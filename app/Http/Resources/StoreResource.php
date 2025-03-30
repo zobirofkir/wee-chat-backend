@@ -19,9 +19,10 @@ class StoreResource extends JsonResource
             'name' => $this->name,
             'domain' => $this->domain,
             'is_active' => $this->is_active,
-            'theme' => $this->theme,
-            'theme_applied_at' => $this->theme_applied_at,
-            'theme_storage_path' => $this->theme_storage_path,
+            'theme_url' => $this->when($this->domain && $this->theme, function () {
+                $protocol = app()->environment('local') ? 'http' : 'https';
+                return "{$protocol}://{$this->domain}";
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

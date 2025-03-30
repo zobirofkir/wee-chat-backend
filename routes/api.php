@@ -73,6 +73,15 @@ Route::prefix('auth')->group(function () {
 });
 
 /**
+ * Store theme routes (accessible via custom domain)
+ */
+Route::domain('{domain}')->group(function () {
+    Route::get('/{path?}', [StoreController::class, 'serveStoreTheme'])
+        ->where('path', '.*')
+        ->name('store.theme');
+});
+
+/**
  * Auth Routes
  */
 require __DIR__ . '/config/auth.php';
