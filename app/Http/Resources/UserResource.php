@@ -22,7 +22,7 @@ class UserResource extends JsonResource
             'avatar' => asset('storage/' . $this->avatar),
             'account_type' => $this->account_type,
             'location' => $this->location,
-            'domain' => $this->store->domain
+            'preview_url' => "http://0.0.0.0/storage/themes/user_{$this->id}/cozastore/index.html",
         ];
     }
 }

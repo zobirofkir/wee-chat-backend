@@ -15,9 +15,9 @@ class AuthController extends Controller
      *
      * @return UserResource
      */
-    public function show() : UserResource
+    public function show(Request $request): UserResource
     {
-        return AuthFacade::show(Auth::user());
+        return AuthFacade::show(Auth::user(), $request);
     }
 
     /**
