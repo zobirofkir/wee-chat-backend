@@ -17,7 +17,7 @@ class StoreResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'domain' => $this->domain . "/storage/themes/user_{$this->user_id}/{$this->theme}/index.html",
+            'domain' => $this->domain,
             'is_active' => $this->is_active,
             'theme_url' => $this->when($this->domain && $this->theme, function () {
                 $protocol = app()->environment('local') ? 'http' : 'https';

@@ -25,6 +25,7 @@ class UserResource extends JsonResource
             'domain' => $this->when($this->store,
                 fn() => "{$this->store->domain}/storage/themes/user_{$this->id}/{$this->store->theme}/index.html"
             ),
+            'preview_url' => $this->when($this->store, fn() => url("storage/themes/user_{$this->id}/" . ($this->store->theme ?? 'default') . '/index.html')),
         ];
     }
 }
