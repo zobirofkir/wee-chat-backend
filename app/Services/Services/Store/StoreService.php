@@ -109,7 +109,6 @@ class StoreService implements StoreConstructor
             ], 404);
         }
 
-        // Remove old theme if exists
         if ($store->theme && $store->theme !== $themeName) {
             $this->removeOldTheme($user->id, $store->theme);
         }
