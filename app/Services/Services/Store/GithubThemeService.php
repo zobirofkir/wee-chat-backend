@@ -252,10 +252,8 @@ class GithubThemeService implements GithubThemeConstructor
             ], 404);
         }
 
-        // Save theme HTML files to local storage
         StoreFacade::saveThemeToStorage($user->id, $themeName, $themeDetails['theme']);
 
-        // Update store with theme information
         $store->update([
             'theme' => $themeName,
             'theme_applied_at' => now(),
