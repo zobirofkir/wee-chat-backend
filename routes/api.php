@@ -75,6 +75,11 @@ Route::prefix('auth')->group(function () {
              */
             Route::prefix('customization')->group(function () {
                 /**
+                 * Get current theme
+                 */
+                Route::get('current', [ThemeCustomizationController::class, 'getCurrentTheme']);
+
+                /**
                  * Get customization options
                  */
                 Route::get('options', [ThemeCustomizationController::class, 'getCustomizationOptions']);

@@ -151,7 +151,6 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
      */
     protected function getDefaultCustomizationOptions(string $themeName) : array
     {
-        // This is a basic example. In a real application, you would load these from a theme configuration file
         return [
             'colors' => [
                 'primary' => '#007bff',
@@ -169,5 +168,43 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
                 'spacing' => '1rem'
             ]
         ];
+    }
+
+    /**
+     * Get current theme information
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getCurrentTheme(Request $request) : JsonResponse
+    {
+        $user = $request->user();
+        $store = $user->store;
+
+        if (!$store || !$store->theme) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active theme found for this store'
+            ], 404);
+        }
+
+        $themePath = "themes/user_{$user->id}/{$store->theme}";
+        $themeInfoPath = "{$themePath}/theme-info.json";
+
+        $themeInfo = [];
+        if (Storage::exists($themeInfoPath)) {
+            $themeInfo = json_decode(Storage::get($themeInfoPath), true);
+        }
+
+        return response()->json([
+            'success' => true,
+            'theme' => [
+                'name' => $store->theme,
+                'applied_at' => $store->theme_applied_at,
+                'storage_path' => $store->theme_storage_path,
+                'preview_url' => url("storage/themes/user_{$user->id}/{$store->theme}/index.html"),
+                'info' => $themeInfo
+            ]
+        ]);
     }
 }

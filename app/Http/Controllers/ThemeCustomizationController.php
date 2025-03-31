@@ -40,4 +40,15 @@ class ThemeCustomizationController extends Controller
     {
         return ThemeCustomizationFacade::resetCustomization($request);
     }
+
+    /**
+     * Get current theme information
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getCurrentTheme(Request $request) : JsonResponse
+    {
+        return ThemeCustomizationFacade::getCurrentTheme($request);
+    }
 }
