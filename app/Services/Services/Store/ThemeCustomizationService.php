@@ -3,6 +3,8 @@
 namespace App\Services\Services\Store;
 
 use App\Services\Constructors\ThemeCustomizationConstructor;
+use App\Http\Resources\ThemeCustomizationResource;
+use App\Http\Resources\ThemeResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -22,10 +24,10 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $store = $user->store;
 
         if (!$store || !$store->theme) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active theme found for this store'
-            ], 404);
+            return response()->json(
+                ThemeCustomizationResource::error('No active theme found for this store'),
+                404
+            );
         }
 
         $customizationPath = $this->getCustomizationPath($user->id, $store->theme);
@@ -33,16 +35,10 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
 
         if (Storage::exists($customizationPath)) {
             $customOptions = json_decode(Storage::get($customizationPath), true);
-            return response()->json([
-                'success' => true,
-                'options' => array_merge($defaultOptions, $customOptions)
-            ]);
+            return response()->json(new ThemeCustomizationResource(array_merge($defaultOptions, $customOptions)));
         }
 
-        return response()->json([
-            'success' => true,
-            'options' => $defaultOptions
-        ]);
+        return response()->json(new ThemeCustomizationResource($defaultOptions));
     }
 
     /**
@@ -57,36 +53,32 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $store = $user->store;
 
         if (!$store || !$store->theme) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active theme found for this store'
-            ], 404);
+            return response()->json(
+                ThemeCustomizationResource::error('No active theme found for this store'),
+                404
+            );
         }
 
         $customizationPath = $this->getCustomizationPath($user->id, $store->theme);
         $customOptions = $request->input('options');
 
         if (!$customOptions) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No customization options provided'
-            ], 400);
+            return response()->json(
+                ThemeCustomizationResource::error('No customization options provided'),
+                400
+            );
         }
 
         try {
             Storage::put($customizationPath, json_encode($customOptions, JSON_PRETTY_PRINT));
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Theme customization updated successfully',
-                'options' => $customOptions
-            ]);
+            return response()->json(new ThemeCustomizationResource($customOptions));
         } catch (\Exception $e) {
             Log::error('Failed to update theme customization: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update theme customization'
-            ], 500);
+            return response()->json(
+                ThemeCustomizationResource::error('Failed to update theme customization'),
+                500
+            );
         }
     }
 
@@ -102,10 +94,10 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $store = $user->store;
 
         if (!$store || !$store->theme) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active theme found for this store'
-            ], 404);
+            return response()->json(
+                ThemeCustomizationResource::error('No active theme found for this store'),
+                404
+            );
         }
 
         $customizationPath = $this->getCustomizationPath($user->id, $store->theme);
@@ -117,17 +109,13 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
 
             $defaultOptions = $this->getDefaultCustomizationOptions($store->theme);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Theme customization reset to default',
-                'options' => $defaultOptions
-            ]);
+            return response()->json(new ThemeCustomizationResource($defaultOptions));
         } catch (\Exception $e) {
             Log::error('Failed to reset theme customization: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to reset theme customization'
-            ], 500);
+            return response()->json(
+                ThemeCustomizationResource::error('Failed to reset theme customization'),
+                500
+            );
         }
     }
 
@@ -182,10 +170,10 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $store = $user->store;
 
         if (!$store || !$store->theme) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active theme found for this store'
-            ], 404);
+            return response()->json(
+                ThemeResource::error('No active theme found for this store'),
+                404
+            );
         }
 
         $themePath = "themes/user_{$user->id}/{$store->theme}";
@@ -196,15 +184,14 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
             $themeInfo = json_decode(Storage::get($themeInfoPath), true);
         }
 
-        return response()->json([
-            'success' => true,
-            'theme' => [
-                'name' => $store->theme,
-                'applied_at' => $store->theme_applied_at,
-                'storage_path' => $store->theme_storage_path,
-                'preview_url' => url("storage/themes/user_{$user->id}/{$store->theme}/index.html"),
-                'info' => $themeInfo
-            ]
-        ]);
+        $themeData = [
+            'name' => $store->theme,
+            'applied_at' => $store->theme_applied_at,
+            'storage_path' => $store->theme_storage_path,
+            'preview_url' => url("storage/themes/user_{$user->id}/{$store->theme}/index.html"),
+            'info' => $themeInfo
+        ];
+
+        return response()->json(new ThemeResource($themeData));
     }
 }
