@@ -22,7 +22,9 @@ class UserResource extends JsonResource
             'avatar' => asset('storage/' . $this->avatar),
             'account_type' => $this->account_type,
             'location' => $this->location,
-            'domain' => $this->store->domain
+            'domain' => $this->when($this->store,
+                fn() => "{$this->store->domain}/storage/themes/user_{$this->id}/{$this->store->theme}/index.html"
+            ),
         ];
     }
 }

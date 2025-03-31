@@ -9,6 +9,7 @@ use App\Http\Resources\Auth\PasswordResetResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\ViewErrorBag;
 
 class ForgetPasswordService implements ForgetPasswordConstructor
 {
@@ -45,7 +46,7 @@ class ForgetPasswordService implements ForgetPasswordConstructor
         return view('auth.passwords.reset')->with([
             'token' => $token,
             'email' => $request->email,
-            'errors' => session()->get('errors') ?: new \Illuminate\Support\ViewErrorBag
+            'errors' => session()->get('errors') ?: new ViewErrorBag
         ]);
     }
 

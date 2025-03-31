@@ -14,6 +14,19 @@ class StoreResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'domain' => $this->domain . "/storage/themes/user_{$this->user_id}/{$this->theme}/index.html",
+            'is_active' => $this->is_active,
+            'theme_url' => $this->when($this->domain && $this->theme, function () {
+                $protocol = app()->environment('local') ? 'http' : 'https';
+                return "{$protocol}://{$this->domain}";
+            }),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            'theme' => $this->theme,
+            'preview_url' => url("storage/themes/user_{$this->user_id}/" . ($this->theme ?? 'default') . '/index.html'),
+        ];
     }
 }
