@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\UpdateCurrentAuthUserController;
 use App\Http\Controllers\GithubThemeController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\ThemeCustomizationController;
 use Illuminate\Support\Facades\Route;
 
 /**
@@ -68,6 +69,26 @@ Route::prefix('auth')->group(function () {
              */
             Route::get('/user/{userId}/{themeName}/{filePath?}', [StoreController::class, 'serveThemeFile'])
                 ->where('filePath', '.*');
+
+            /**
+             * Theme customization routes
+             */
+            Route::prefix('customization')->group(function () {
+                /**
+                 * Get customization options
+                 */
+                Route::get('options', [ThemeCustomizationController::class, 'getCustomizationOptions']);
+
+                /**
+                 * Update customization
+                 */
+                Route::put('update', [ThemeCustomizationController::class, 'updateCustomization']);
+
+                /**
+                 * Reset customization
+                 */
+                Route::post('reset', [ThemeCustomizationController::class, 'resetCustomization']);
+            });
         });
     });
 });
@@ -87,6 +108,6 @@ Route::domain('{domain}')->group(function () {
 require __DIR__ . '/config/auth.php';
 
 /**
- * Forget Passwçrd Routes
+ * Forget Password Routes
  */
 require __DIR__ . '/config/password.php';
