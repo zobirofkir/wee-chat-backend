@@ -109,6 +109,11 @@ class StoreService implements StoreConstructor
             ], 404);
         }
 
+        // Remove old theme if exists
+        if ($store->theme && $store->theme !== $themeName) {
+            $this->removeOldTheme($user->id, $store->theme);
+        }
+
         $themeData = $request->input('theme_data');
 
         $this->saveThemeToStorage($user->id, $themeName, $themeData);
@@ -124,6 +129,24 @@ class StoreService implements StoreConstructor
             'message' => 'Theme applied and saved successfully',
             'store' => $store
         ]);
+    }
+
+    /**
+     * Remove old theme from storage
+     *
+     * @param int $userId
+     * @param string $themeName
+     * @return bool
+     */
+    protected function removeOldTheme(int $userId, string $themeName) : bool
+    {
+        $storagePath = $this->getThemeStoragePath($userId, $themeName);
+
+        if (Storage::disk('public')->exists($storagePath)) {
+            return Storage::disk('public')->deleteDirectory($storagePath);
+        }
+
+        return false;
     }
 
     /**

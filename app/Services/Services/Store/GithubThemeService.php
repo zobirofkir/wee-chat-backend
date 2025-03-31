@@ -374,6 +374,14 @@ class GithubThemeService implements GithubThemeConstructor
             ], 404);
         }
 
+        // Remove old theme if exists
+        if ($store->theme && $store->theme !== $themeName) {
+            $oldThemePath = storage_path("app/public/themes/user_{$user->id}/{$store->theme}");
+            if (is_dir($oldThemePath)) {
+                $this->removeDirectory($oldThemePath);
+            }
+        }
+
         $cloneResult = $this->cloneAndExtractTheme($themeName, $user->id);
 
         if (!$cloneResult['success']) {
