@@ -179,15 +179,10 @@ class StoreService implements StoreConstructor
      */
     protected function downloadFileContent(string $url) : ?string
     {
-        try {
-            $response = Http::get($url);
-            if ($response->successful()) {
-                return $response->body();
-            }
-        } catch (\Exception $e) {
-            Log::error('Failed to download theme file: ' . $e->getMessage());
+        $response = Http::get($url);
+        if ($response->successful()) {
+            return $response->body();
         }
-
         return null;
     }
 
@@ -204,30 +199,26 @@ class StoreService implements StoreConstructor
         $storagePath = $this->getThemeStoragePath($userId, $themeName);
         $relativePath = str_replace($themeName . '/', '', $path);
 
-        try {
-            $response = Http::get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$path}");
+        $response = Http::get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$path}");
 
-            if ($response->successful()) {
-                $contents = $response->json();
+        if ($response->successful()) {
+            $contents = $response->json();
 
-                foreach ($contents as $item) {
-                    $itemPath = $storagePath . '/' . $relativePath . '/' . $item['name'];
+            foreach ($contents as $item) {
+                $itemPath = $storagePath . '/' . $relativePath . '/' . $item['name'];
 
-                    if ($item['type'] === 'file') {
-                        $fileContent = $this->downloadFileContent($item['download_url']);
-                        if ($fileContent) {
-                            Storage::disk('public')->put($itemPath, $fileContent);
-                        }
-                    } elseif ($item['type'] === 'dir') {
-                        Storage::disk('public')->makeDirectory($itemPath, 0755, true, true);
-                        $this->downloadDirectory($userId, $themeName, $item['path']);
+                if ($item['type'] === 'file') {
+                    $fileContent = $this->downloadFileContent($item['download_url']);
+                    if ($fileContent) {
+                        Storage::disk('public')->put($itemPath, $fileContent);
                     }
+                } elseif ($item['type'] === 'dir') {
+                    Storage::disk('public')->makeDirectory($itemPath, 0755, true, true);
+                    $this->downloadDirectory($userId, $themeName, $item['path']);
                 }
-
-                return true;
             }
-        } catch (\Exception $e) {
-            Log::error('Failed to download theme directory: ' . $e->getMessage());
+
+            return true;
         }
 
         return false;
@@ -260,7 +251,6 @@ class StoreService implements StoreConstructor
         if (Storage::disk('public')->exists($infoPath)) {
             $themeInfo = json_decode(Storage::disk('public')->get($infoPath), true);
 
-            // Get list of all files in the theme directory
             $files = $this->getThemeFiles($storagePath);
 
             return [
