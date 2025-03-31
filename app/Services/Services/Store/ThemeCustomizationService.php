@@ -192,6 +192,6 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
             'info' => $themeInfo
         ];
 
-        return response()->json(new ThemeResource($themeData));
+        return response()->json(ThemeResource::make($themeData));
     }
 }
