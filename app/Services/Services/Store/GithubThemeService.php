@@ -4,6 +4,7 @@ namespace App\Services\Services\Store;
 
 use App\Services\Constructors\GithubThemeConstructor;
 use App\Services\Facades\StoreFacade;
+use App\Http\Resources\GithubThemeResource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
@@ -44,12 +45,11 @@ class GithubThemeService implements GithubThemeConstructor
         if (Cache::has($cacheKey)) {
             return response()->json([
                 'success' => true,
-                'themes' => Cache::get($cacheKey),
+                'themes' => GithubThemeResource::collection(Cache::get($cacheKey)),
                 'source' => 'cache'
             ]);
         }
 
-        try {
             $response = Http::withHeaders($this->getGithubHeaders())
                 ->get('https://api.github.com/repos/zobirofkir/wee-build-themes/contents');
 
@@ -77,7 +77,7 @@ class GithubThemeService implements GithubThemeConstructor
 
                 return response()->json([
                     'success' => true,
-                    'themes' => $themes,
+                    'themes' => GithubThemeResource::collection($themes),
                     'source' => 'api'
                 ]);
             }
@@ -97,14 +97,6 @@ class GithubThemeService implements GithubThemeConstructor
                 'message' => $errorMessage,
                 'status_code' => $response->status()
             ], $response->status());
-        } catch (\Exception $e) {
-            Log::error('GitHub API exception: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
-            ], 500);
-        }
     }
 
     /**
@@ -131,12 +123,11 @@ class GithubThemeService implements GithubThemeConstructor
         if (Cache::has($cacheKey)) {
             return response()->json([
                 'success' => true,
-                'theme' => Cache::get($cacheKey),
+                'theme' => GithubThemeResource::make(Cache::get($cacheKey)),
                 'source' => 'cache'
             ]);
         }
 
-        try {
             $response = Http::withHeaders($this->getGithubHeaders())
                 ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
 
@@ -153,7 +144,7 @@ class GithubThemeService implements GithubThemeConstructor
 
                 return response()->json([
                     'success' => true,
-                    'theme' => $themeData,
+                    'theme' => GithubThemeResource::make($themeData),
                     'source' => 'api'
                 ]);
             }
@@ -174,16 +165,6 @@ class GithubThemeService implements GithubThemeConstructor
                 'message' => $errorMessage,
                 'status_code' => $response->status()
             ], $response->status());
-        } catch (\Exception $e) {
-            Log::error('GitHub API exception when fetching theme: ' . $e->getMessage(), [
-                'theme' => $themeName
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
-            ], 500);
-        }
     }
 
     /**
@@ -193,7 +174,6 @@ class GithubThemeService implements GithubThemeConstructor
      */
     public function clearCache() : JsonResponse
     {
-        try {
             Cache::forget('github_themes_list');
 
             $keys = Redis::keys('laravel_cache:github_theme_*');
@@ -206,14 +186,6 @@ class GithubThemeService implements GithubThemeConstructor
                 'success' => true,
                 'message' => 'Theme cache cleared successfully'
             ]);
-        } catch (\Exception $e) {
-            Log::error('Error clearing theme cache: ' . $e->getMessage());
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error clearing cache: ' . $e->getMessage()
-            ], 500);
-        }
     }
 
     /**
@@ -234,7 +206,6 @@ class GithubThemeService implements GithubThemeConstructor
             ];
         }
 
-        try {
             $response = Http::withHeaders($this->getGithubHeaders())
                 ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
 
@@ -272,16 +243,6 @@ class GithubThemeService implements GithubThemeConstructor
                 'message' => $errorMessage,
                 'status_code' => $response->status()
             ];
-        } catch (\Exception $e) {
-            Log::error('GitHub API exception in getThemeDetails: ' . $e->getMessage(), [
-                'theme' => $themeName
-            ]);
-
-            return [
-                'success' => false,
-                'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
-            ];
-        }
     }
 
     /**
@@ -293,11 +254,9 @@ class GithubThemeService implements GithubThemeConstructor
      */
     private function cloneAndExtractTheme(string $themeName, int $userId): array
     {
-        try {
             $tempDir = storage_path("app/temp/themes/{$userId}/{$themeName}");
             $targetDir = storage_path("app/public/themes/user_{$userId}/{$themeName}");
 
-            // Create directories if they don't exist
             if (!file_exists($tempDir)) {
                 mkdir($tempDir, 0755, true);
             }
@@ -305,7 +264,6 @@ class GithubThemeService implements GithubThemeConstructor
                 mkdir($targetDir, 0755, true);
             }
 
-            // Clone the repository
             $repoUrl = 'https://github.com/zobirofkir/wee-build-themes.git';
             $command = "git clone {$repoUrl} {$tempDir}/repo";
 
@@ -315,38 +273,19 @@ class GithubThemeService implements GithubThemeConstructor
                 throw new \Exception('Failed to clone repository');
             }
 
-            // Copy the specific theme
             $themeSource = "{$tempDir}/repo/{$themeName}";
             if (!is_dir($themeSource)) {
                 throw new \Exception("Theme {$themeName} not found in repository");
             }
 
-            // Copy theme files to target directory
             $this->copyDirectory($themeSource, $targetDir);
 
-            // Clean up temporary files
             $this->removeDirectory($tempDir);
 
             return [
                 'success' => true,
                 'path' => $targetDir
             ];
-        } catch (\Exception $e) {
-            Log::error('Error cloning theme: ' . $e->getMessage(), [
-                'theme' => $themeName,
-                'user_id' => $userId
-            ]);
-
-            // Clean up on failure
-            if (isset($tempDir) && is_dir($tempDir)) {
-                $this->removeDirectory($tempDir);
-            }
-
-            return [
-                'success' => false,
-                'message' => 'Failed to clone theme: ' . $e->getMessage()
-            ];
-        }
     }
 
     /**
@@ -435,7 +374,6 @@ class GithubThemeService implements GithubThemeConstructor
             ], 404);
         }
 
-        // Clone and extract the theme
         $cloneResult = $this->cloneAndExtractTheme($themeName, $user->id);
 
         if (!$cloneResult['success']) {
@@ -454,11 +392,11 @@ class GithubThemeService implements GithubThemeConstructor
         return response()->json([
             'success' => true,
             'message' => 'Theme applied and saved successfully',
-            'store' => $store,
-            'theme_details' => [
+            'store' => GithubThemeResource::make($store->toArray()),
+            'theme_details' => GithubThemeResource::make([
                 'name' => $themeName,
                 'preview_url' => url("themes/user_{$user->id}/{$themeName}/index.html")
-            ]
+            ])
         ]);
     }
 }
