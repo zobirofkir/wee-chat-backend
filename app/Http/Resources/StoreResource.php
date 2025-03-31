@@ -26,7 +26,7 @@ class StoreResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'theme' => $this->theme,
-            'preview_url' => url("themes/user_{$this->user_id}/" . ($this->theme ?? 'default')),
+            'preview_url' => url("storage/themes/user_{$this->user_id}/" . ($this->theme ?? 'default')),
         ];
     }
 }
