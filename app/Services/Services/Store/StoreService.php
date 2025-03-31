@@ -2,6 +2,7 @@
 
 namespace App\Services\Services\Store;
 
+use App\Http\Resources\StoreResource;
 use App\Models\Store;
 use App\Services\Constructors\StoreConstructor;
 use Illuminate\Support\Str;
@@ -85,7 +86,7 @@ class StoreService implements StoreConstructor
 
         return response()->json([
             'user' => $user,
-            'store' => new \App\Http\Resources\StoreResource($store)
+            'store' => StoreResource::make($store)
         ]);
     }
 
