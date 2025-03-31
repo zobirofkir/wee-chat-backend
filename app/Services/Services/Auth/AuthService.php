@@ -32,9 +32,6 @@ class AuthService implements AuthConstructor
      */
     public function delete(User $user): bool
     {
-        if (!$user) {
-            throw new \Exception('User not authenticated');
-        }
         $user->delete();
         return true;
     }
