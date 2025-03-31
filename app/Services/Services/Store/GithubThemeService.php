@@ -217,61 +217,6 @@ class GithubThemeService implements GithubThemeConstructor
     }
 
     /**
-     * Apply a theme to a user's store
-     *
-     * @param Request $request
-     * @param string $themeName
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function applyTheme(Request $request, string $themeName) : JsonResponse
-    {
-        $user = $request->user();
-
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
-        }
-
-        $store = $user->store;
-
-        if (!$store) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Store not found for this user'
-            ], 404);
-        }
-
-        $themeDetails = $this->getThemeDetails($themeName);
-
-        if (!$themeDetails['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $themeDetails['message'] ?? 'Theme not found'
-            ], 404);
-        }
-
-        StoreFacade::saveThemeToStorage($user->id, $themeName, $themeDetails['theme']);
-
-        $store->update([
-            'theme' => $themeName,
-            'theme_applied_at' => now(),
-            'theme_storage_path' => StoreFacade::getThemeStoragePath($user->id, $themeName)
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Theme applied and saved successfully',
-            'store' => $store,
-            'theme_details' => [
-                'name' => $themeName,
-                'preview_url' => url("themes/user_{$user->id}/{$themeName}/index.html")
-            ]
-        ]);
-    }
-
-    /**
      * Get theme details (private helper method)
      *
      * @param string $themeName
@@ -337,5 +282,183 @@ class GithubThemeService implements GithubThemeConstructor
                 'message' => 'Error connecting to GitHub API: ' . $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Clone the theme repository and extract specific theme
+     *
+     * @param string $themeName
+     * @param int $userId
+     * @return array
+     */
+    private function cloneAndExtractTheme(string $themeName, int $userId): array
+    {
+        try {
+            $tempDir = storage_path("app/temp/themes/{$userId}/{$themeName}");
+            $targetDir = storage_path("app/public/themes/user_{$userId}/{$themeName}");
+
+            // Create directories if they don't exist
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+            if (!file_exists($targetDir)) {
+                mkdir($targetDir, 0755, true);
+            }
+
+            // Clone the repository
+            $repoUrl = 'https://github.com/zobirofkir/wee-build-themes.git';
+            $command = "git clone {$repoUrl} {$tempDir}/repo";
+
+            exec($command, $output, $returnVar);
+
+            if ($returnVar !== 0) {
+                throw new \Exception('Failed to clone repository');
+            }
+
+            // Copy the specific theme
+            $themeSource = "{$tempDir}/repo/{$themeName}";
+            if (!is_dir($themeSource)) {
+                throw new \Exception("Theme {$themeName} not found in repository");
+            }
+
+            // Copy theme files to target directory
+            $this->copyDirectory($themeSource, $targetDir);
+
+            // Clean up temporary files
+            $this->removeDirectory($tempDir);
+
+            return [
+                'success' => true,
+                'path' => $targetDir
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error cloning theme: ' . $e->getMessage(), [
+                'theme' => $themeName,
+                'user_id' => $userId
+            ]);
+
+            // Clean up on failure
+            if (isset($tempDir) && is_dir($tempDir)) {
+                $this->removeDirectory($tempDir);
+            }
+
+            return [
+                'success' => false,
+                'message' => 'Failed to clone theme: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Copy directory recursively
+     *
+     * @param string $source
+     * @param string $destination
+     * @return void
+     */
+    private function copyDirectory(string $source, string $destination): void
+    {
+        if (!is_dir($destination)) {
+            mkdir($destination, 0755, true);
+        }
+
+        $files = scandir($source);
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+
+            $sourcePath = $source . '/' . $file;
+            $destinationPath = $destination . '/' . $file;
+
+            if (is_dir($sourcePath)) {
+                $this->copyDirectory($sourcePath, $destinationPath);
+            } else {
+                copy($sourcePath, $destinationPath);
+            }
+        }
+    }
+
+    /**
+     * Remove directory recursively
+     *
+     * @param string $directory
+     * @return void
+     */
+    private function removeDirectory(string $directory): void
+    {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        $files = scandir($directory);
+        foreach ($files as $file) {
+            if ($file === '.' || $file === '..') {
+                continue;
+            }
+
+            $path = $directory . '/' . $file;
+            if (is_dir($path)) {
+                $this->removeDirectory($path);
+            } else {
+                unlink($path);
+            }
+        }
+
+        rmdir($directory);
+    }
+
+    /**
+     * Apply a theme to a user's store
+     *
+     * @param Request $request
+     * @param string $themeName
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function applyTheme(Request $request, string $themeName) : JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not authenticated'
+            ], 401);
+        }
+
+        $store = $user->store;
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store not found for this user'
+            ], 404);
+        }
+
+        // Clone and extract the theme
+        $cloneResult = $this->cloneAndExtractTheme($themeName, $user->id);
+
+        if (!$cloneResult['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $cloneResult['message'] ?? 'Failed to download theme'
+            ], 500);
+        }
+
+        $store->update([
+            'theme' => $themeName,
+            'theme_applied_at' => now(),
+            'theme_storage_path' => $cloneResult['path']
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Theme applied and saved successfully',
+            'store' => $store,
+            'theme_details' => [
+                'name' => $themeName,
+                'preview_url' => url("themes/user_{$user->id}/{$themeName}/index.html")
+            ]
+        ]);
     }
 }
