@@ -55,17 +55,14 @@ class StoreController extends Controller
      */
     public function serveStoreTheme(Request $request, string $domain, string $path = null)
     {
-        // Find the store by domain
         $store = Store::where('domain', $domain)->first();
 
         if (!$store || !$store->is_active || !$store->theme) {
             abort(404);
         }
 
-        // Default to index.html if no path is provided
         $filePath = $path ?: 'index.html';
 
-        // Construct the storage path
         $storagePath = "themes/user_{$store->user_id}/{$store->theme}/{$filePath}";
 
         if (!Storage::exists($storagePath)) {
