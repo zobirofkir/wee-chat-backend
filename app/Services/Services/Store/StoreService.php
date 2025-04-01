@@ -339,14 +339,16 @@ class StoreService implements StoreConstructor
 
         foreach ($directories as $directory) {
             $themeName = basename($directory);
-            $themeData = $this->getStoredThemeData($userId, $themeName);
+            $infoPath = $directory . '/theme-info.json';
 
-            if ($themeData) {
+            if (Storage::disk('public')->exists($infoPath)) {
+                $themeInfo = json_decode(Storage::disk('public')->get($infoPath), true);
+
                 $themes[] = [
                     'name' => $themeName,
                     'path' => $directory,
-                    'data' => $themeData,
-                    'installed_at' => $themeData['installed_at'] ?? null
+                    'installed_at' => $themeInfo['installed_at'] ?? null,
+                    'preview_url' => asset("storage/{$directory}/index.html")
                 ];
             }
         }

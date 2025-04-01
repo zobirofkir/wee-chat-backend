@@ -43,7 +43,7 @@ Route::prefix('auth')->group(function () {
         /**
          * Show store
          */
-        Route::get('/store', [StoreController::class, 'show']);
+        Route::get('store', [StoreController::class, 'show']);
 
         /**
          * Theme routes
