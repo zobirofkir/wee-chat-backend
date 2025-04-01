@@ -103,6 +103,11 @@ Route::prefix('auth')->group(function () {
                  * Update theme file content
                  */
                 Route::put('file', [ThemeCustomizationController::class, 'updateThemeFile']);
+
+                /**
+                 * List all HTML files
+                 */
+                Route::get('files', [ThemeCustomizationController::class, 'listHtmlFiles']);
             });
         });
     });

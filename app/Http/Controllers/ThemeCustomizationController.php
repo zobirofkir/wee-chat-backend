@@ -73,4 +73,15 @@ class ThemeCustomizationController extends Controller
     {
         return ThemeCustomizationFacade::updateThemeFile($request);
     }
+
+    /**
+     * List all HTML files in the theme directory
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function listHtmlFiles(Request $request) : JsonResponse
+    {
+        return ThemeCustomizationFacade::listHtmlFiles($request);
+    }
 }
