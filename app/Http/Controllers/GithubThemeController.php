@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Facades\GithubThemeFacade;
+use App\Services\Facades\Store\GithubThemeFacade;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 

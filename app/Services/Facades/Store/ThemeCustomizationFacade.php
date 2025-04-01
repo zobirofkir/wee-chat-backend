@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Facades;
+namespace App\Services\Facades\Store;
 
 use App\Services\Services\Store\ThemeCustomizationService;
 use Illuminate\Support\Facades\Facade;

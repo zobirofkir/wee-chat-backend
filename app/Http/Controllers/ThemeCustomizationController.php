@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Facades\ThemeCustomizationFacade;
+use App\Services\Facades\Store\ThemeCustomizationFacade;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
