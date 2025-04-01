@@ -93,6 +93,16 @@ Route::prefix('auth')->group(function () {
                  * Reset customization
                  */
                 Route::post('reset', [ThemeCustomizationController::class, 'resetCustomization']);
+
+                /**
+                 * Get theme file content
+                 */
+                Route::get('file', [ThemeCustomizationController::class, 'getThemeFile']);
+
+                /**
+                 * Update theme file content
+                 */
+                Route::put('file', [ThemeCustomizationController::class, 'updateThemeFile']);
             });
         });
     });

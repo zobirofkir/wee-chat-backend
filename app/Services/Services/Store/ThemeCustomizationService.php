@@ -194,4 +194,153 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
 
         return response()->json(ThemeResource::make($themeData));
     }
+
+    /**
+     * Update specific theme file content
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateThemeFile(Request $request) : JsonResponse
+    {
+        $user = $request->user();
+        $store = $user->store;
+
+        if (!$store || !$store->theme) {
+            return response()->json(
+                ThemeCustomizationResource::error('No active theme found for this store'),
+                404
+            );
+        }
+
+        $filePath = $request->input('file_path');
+        $content = $request->input('content');
+        $section = $request->input('section');
+        $element = $request->input('element');
+
+        if (!$filePath || !$content) {
+            return response()->json(
+                ThemeCustomizationResource::error('File path and content are required'),
+                400
+            );
+        }
+
+        try {
+            $themePath = "themes/user_{$user->id}/{$store->theme}";
+            $fullPath = Storage::disk('public')->path("{$themePath}/{$filePath}");
+
+            if (!Storage::disk('public')->exists("{$themePath}/{$filePath}")) {
+                return response()->json(
+                    ThemeCustomizationResource::error('Theme file not found'),
+                    404
+                );
+            }
+
+            $fileContent = Storage::disk('public')->get("{$themePath}/{$filePath}");
+
+            if ($section && $element) {
+                // Update specific section and element
+                $fileContent = $this->updateSpecificElement($fileContent, $section, $element, $content);
+            } else {
+                // Update entire file
+                $fileContent = $content;
+            }
+
+            Storage::disk('public')->put("{$themePath}/{$filePath}", $fileContent);
+
+            return response()->json([
+                'message' => 'Theme file updated successfully',
+                'file_path' => $filePath
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to update theme file: ' . $e->getMessage());
+            return response()->json(
+                ThemeCustomizationResource::error('Failed to update theme file'),
+                500
+            );
+        }
+    }
+
+    /**
+     * Update specific element in the file content
+     *
+     * @param string $content
+     * @param string $section
+     * @param string $element
+     * @param string $newContent
+     * @return string
+     */
+    protected function updateSpecificElement(string $content, string $section, string $element, string $newContent) : string
+    {
+        // Find the section
+        $sectionPattern = "/<section[^>]*class=\"[^\"]*{$section}[^\"]*\"[^>]*>(.*?)<\/section>/s";
+        if (preg_match($sectionPattern, $content, $sectionMatches)) {
+            $sectionContent = $sectionMatches[1];
+
+            // Find the element within the section
+            $elementPattern = "/<{$element}[^>]*>(.*?)<\/{$element}>/s";
+            if (preg_match($elementPattern, $sectionContent)) {
+                // Replace the element content
+                $content = preg_replace(
+                    $elementPattern,
+                    "<{$element}>{$newContent}</{$element}>",
+                    $content
+                );
+            }
+        }
+
+        return $content;
+    }
+
+    /**
+     * Get theme file content
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getThemeFile(Request $request) : JsonResponse
+    {
+        $user = $request->user();
+        $store = $user->store;
+
+        if (!$store || !$store->theme) {
+            return response()->json(
+                ThemeCustomizationResource::error('No active theme found for this store'),
+                404
+            );
+        }
+
+        $filePath = $request->input('file_path');
+
+        if (!$filePath) {
+            return response()->json(
+                ThemeCustomizationResource::error('File path is required'),
+                400
+            );
+        }
+
+        try {
+            $themePath = "themes/user_{$user->id}/{$store->theme}";
+
+            if (!Storage::disk('public')->exists("{$themePath}/{$filePath}")) {
+                return response()->json(
+                    ThemeCustomizationResource::error('Theme file not found'),
+                    404
+                );
+            }
+
+            $content = Storage::disk('public')->get("{$themePath}/{$filePath}");
+
+            return response()->json([
+                'content' => $content,
+                'file_path' => $filePath
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get theme file: ' . $e->getMessage());
+            return response()->json(
+                ThemeCustomizationResource::error('Failed to get theme file'),
+                500
+            );
+        }
+    }
 }

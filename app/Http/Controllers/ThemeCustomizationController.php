@@ -51,4 +51,26 @@ class ThemeCustomizationController extends Controller
     {
         return ThemeCustomizationFacade::getCurrentTheme($request);
     }
+
+    /**
+     * Get theme file content
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getThemeFile(Request $request) : JsonResponse
+    {
+        return ThemeCustomizationFacade::getThemeFile($request);
+    }
+
+    /**
+     * Update theme file content
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updateThemeFile(Request $request) : JsonResponse
+    {
+        return ThemeCustomizationFacade::updateThemeFile($request);
+    }
 }
