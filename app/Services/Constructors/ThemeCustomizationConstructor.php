@@ -30,4 +30,12 @@ interface ThemeCustomizationConstructor
      * @return JsonResponse
      */
     public function resetCustomization(Request $request) : JsonResponse;
+
+    /**
+     * Get current theme
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function getCurrentTheme(Request $request) : JsonResponse;
 }
