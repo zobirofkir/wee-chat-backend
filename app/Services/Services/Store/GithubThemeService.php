@@ -65,10 +65,6 @@ class GithubThemeService implements GithubThemeConstructor
         $response = Http::withHeaders($this->getGithubHeaders())
             ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
 
-        if (!$response->successful()) {
-            return $this->handleApiError($response, "فشل في جلب تفاصيل الثيم {$themeName}");
-        }
-
         $themeData = [
             'name' => $themeName,
             'files' => $response->json(),
@@ -98,7 +94,6 @@ class GithubThemeService implements GithubThemeConstructor
 
             return response()->json([
                 'success' => true,
-                'message' => 'Theme cache cleared successfully'
             ]);
     }
 
