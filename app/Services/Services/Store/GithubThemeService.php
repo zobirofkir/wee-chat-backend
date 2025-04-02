@@ -21,7 +21,7 @@ class GithubThemeService implements GithubThemeConstructor
      */
     use GithubThemeServiceTrait;
 
-    
+
     /**
      * Display a listing of the resource.
      *
@@ -113,23 +113,11 @@ class GithubThemeService implements GithubThemeConstructor
     {
         $user = $request->user();
 
-        if (!$user) {
-            return $this->jsonError('User not authenticated', 401);
-        }
-
         $store = $user->store;
-
-        if (!$store) {
-            return $this->jsonError('Store not found for this user', 404);
-        }
 
         $this->removeOldTheme($user->id, $store->theme);
 
         $cloneResult = $this->cloneAndExtractTheme($themeName, $user->id);
-
-        if (!$cloneResult['success']) {
-            return $this->jsonError($cloneResult['message'] ?? 'Failed to download theme', 500);
-        }
 
         $store->update([
             'theme' => $themeName,
@@ -137,7 +125,7 @@ class GithubThemeService implements GithubThemeConstructor
             'theme_storage_path' => $cloneResult['path']
         ]);
 
-        return $this->jsonSuccess('Theme applied and saved successfully', [
+        return response()->json([
             'store' => GithubThemeResource::make($store->toArray()),
             'theme_details' => [
                 'name' => $themeName,
