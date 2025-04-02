@@ -28,21 +28,7 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
     {
         $user = $request->user();
 
-        if (!$user->hasStore()) {
-            return response()->json(
-                ThemeCustomizationResource::error('No store found for this user'),
-                404
-            );
-        }
-
         $store = $user->store;
-
-        if (!$store->theme) {
-            return response()->json(
-                ThemeCustomizationResource::error('No active theme found for this store'),
-                404
-            );
-        }
 
         $customizationPath = $this->getCustomizationPath($user->id, $store->theme);
         $defaultOptions = $this->getDefaultCustomizationOptions($store->theme);
