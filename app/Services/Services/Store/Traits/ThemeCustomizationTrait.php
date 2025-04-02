@@ -143,7 +143,7 @@ trait ThemeCustomizationTrait
      * @param string $themeName
      * @return string
      */
-    protected function buildThemePath(int $userId, string $themeName): string
+    private function buildThemePath(int $userId, string $themeName): string
     {
         return "themes/user_{$userId}/{$themeName}";
     }
@@ -154,7 +154,7 @@ trait ThemeCustomizationTrait
      * @param string $themePath
      * @return string
      */
-    protected function buildPreviewUrl(string $themePath): string
+    private function buildPreviewUrl(string $themePath): string
     {
         return url("storage/{$themePath}/index.html");
     }
@@ -165,7 +165,7 @@ trait ThemeCustomizationTrait
      * @param string $themeInfoPath
      * @return array
      */
-    protected function getThemeInfo(string $themeInfoPath): array
+    private function getThemeInfo(string $themeInfoPath): array
     {
         if (!Storage::exists($themeInfoPath)) {
             return [];
