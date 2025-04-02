@@ -55,6 +55,9 @@ class GithubThemeService implements GithubThemeConstructor
         ]);
     }
 
+    /**
+     * Fetch themes from GitHub and cache themes list
+     */
     private function fetchAndCacheThemes()
     {
         $response = Http::withHeaders($this->getGithubHeaders())
@@ -83,6 +86,12 @@ class GithubThemeService implements GithubThemeConstructor
         return $themes;
     }
 
+    /**
+     * Handle API error responses
+     *
+     * @param [type] $response
+     * @return JsonResponse
+     */
     private function handleApiError($response) : JsonResponse
     {
         return response()->json([
