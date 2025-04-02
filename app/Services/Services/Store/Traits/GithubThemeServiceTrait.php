@@ -88,7 +88,6 @@ trait GithubThemeServiceTrait
     private function handleApiError($response) : JsonResponse
     {
         return response()->json([
-            'message' => $response->json('message', 'Unable to fetch themes'),
             'status_code' => $response->status()
         ], $response->status());
     }
@@ -117,14 +116,7 @@ trait GithubThemeServiceTrait
 
         exec($command, $output, $returnVar);
 
-        if ($returnVar !== 0) {
-            throw new \Exception('Failed to clone repository');
-        }
-
         $themeSource = "{$tempDir}/repo/{$themeName}";
-        if (!is_dir($themeSource)) {
-            throw new \Exception("Theme {$themeName} not found in repository");
-        }
 
         $this->copyDirectory($themeSource, $targetDir);
 
