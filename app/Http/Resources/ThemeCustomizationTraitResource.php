@@ -13,17 +13,17 @@ class ThemeCustomizationTraitResource extends JsonResource
 {
     use ThemeCustomizationTrait;
 
-    public function forStore(User $user, Store $store): array
+    public function forStore(User $user, Store $store)
     {
         $themePath = $this->buildThemePath($user->id, $store->theme);
         $themeInfoPath = "{$themePath}/theme-info.json";
 
-        return [
+        return new self ([
             'name' => $store->theme,
             'applied_at' => $store->theme_applied_at,
             'storage_path' => $store->theme_storage_path,
             'preview_url' => $this->buildPreviewUrl($themePath),
             'info' => $this->getThemeInfo($themeInfoPath),
-        ];
+        ]);
     }
 }

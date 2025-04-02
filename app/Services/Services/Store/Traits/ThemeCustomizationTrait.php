@@ -129,22 +129,42 @@ trait ThemeCustomizationTrait
      *
      * @param User $user
      * @param Store $store
+     * @return ThemeCustomizationTraitResource
      */
-    private function getThemeData(User $user, Store $store)
+    private function getThemeData(User $user, Store $store) : ThemeCustomizationTraitResource
     {
         return (new ThemeCustomizationTraitResource($user, $store))->forStore($user, $store);
     }
 
+    /**
+     * Build theme path
+     *
+     * @param integer $userId
+     * @param string $themeName
+     * @return string
+     */
     protected function buildThemePath(int $userId, string $themeName): string
     {
         return "themes/user_{$userId}/{$themeName}";
     }
 
+    /**
+     * Build preview url
+     *
+     * @param string $themePath
+     * @return string
+     */
     protected function buildPreviewUrl(string $themePath): string
     {
         return url("storage/{$themePath}/index.html");
     }
 
+    /**
+     * Get theme info
+     *
+     * @param string $themeInfoPath
+     * @return array
+     */
     protected function getThemeInfo(string $themeInfoPath): array
     {
         if (!Storage::exists($themeInfoPath)) {
