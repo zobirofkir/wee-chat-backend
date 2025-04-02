@@ -52,56 +52,32 @@ class GithubThemeService implements GithubThemeConstructor
      * @param string $themeName
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTestTheme($themeName) : JsonResponse
+    public function getTestTheme($themeName): JsonResponse
     {
         $cacheKey = "github_theme_{$themeName}";
 
-        if (Cache::has($cacheKey)) {
-            return response()->json([
-                'success' => true,
-                'theme' => GithubThemeResource::make(Cache::get($cacheKey)),
-                'source' => 'cache'
-            ]);
+        if ($theme = Cache::get($cacheKey)) {
+            return $this->jsonResponse(true, $theme, 'cache');
         }
 
-            $response = Http::withHeaders($this->getGithubHeaders())
-                ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
+        $response = Http::withHeaders($this->getGithubHeaders())
+            ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
 
-            if ($response->successful()) {
-                $contents = $response->json();
+        if (!$response->successful()) {
+            return $this->handleApiError($response, "فشل في جلب تفاصيل الثيم {$themeName}");
+        }
 
-                $themeData = [
-                    'name' => $themeName,
-                    'files' => $contents,
-                    'preview_url' => $this->generateTestUrl($themeName)
-                ];
+        $themeData = [
+            'name' => $themeName,
+            'files' => $response->json(),
+            'preview_url' => $this->generateTestUrl($themeName)
+        ];
 
-                Cache::put($cacheKey, $themeData, $this->cacheTtl);
+        Cache::put($cacheKey, $themeData, $this->cacheTtl);
 
-                return response()->json([
-                    'success' => true,
-                    'theme' => GithubThemeResource::make($themeData),
-                    'source' => 'api'
-                ]);
-            }
-
-            $errorMessage = 'Unable to fetch theme details';
-            if ($response->json('message')) {
-                $errorMessage = $response->json('message');
-            }
-
-            Log::error('GitHub API error when fetching theme: ' . $errorMessage, [
-                'theme' => $themeName,
-                'status' => $response->status(),
-                'response' => $response->json()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => $errorMessage,
-                'status_code' => $response->status()
-            ], $response->status());
+        return $this->jsonResponse(true, $themeData, 'api');
     }
+
 
     /**
      * Clear the cache for all themes

@@ -2,6 +2,7 @@
 
 namespace App\Services\Services\Store\Traits;
 
+use App\Http\Resources\GithubThemeResource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,7 @@ trait GithubThemeServiceTrait
      * @var string
      */
     private string $cacheKey = 'github_themes_list';
-    
+
     /**
      * Cache TTL in seconds (1 hour)
      */
@@ -238,4 +239,14 @@ trait GithubThemeServiceTrait
 
         rmdir($directory);
     }
+
+    private function jsonResponse(bool $success, array $data, string $source): JsonResponse
+    {
+        return response()->json([
+            'success' => $success,
+            'theme' => GithubThemeResource::make($data),
+            'source' => $source
+        ]);
+    }
+
 }
