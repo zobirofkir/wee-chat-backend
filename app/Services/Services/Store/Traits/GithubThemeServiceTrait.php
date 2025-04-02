@@ -6,7 +6,6 @@ use App\Http\Resources\GithubThemeResource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 trait GithubThemeServiceTrait
@@ -125,12 +124,6 @@ trait GithubThemeServiceTrait
             if ($response->json('message')) {
                 $errorMessage = $response->json('message');
             }
-
-            Log::error('GitHub API error in getThemeDetails: ' . $errorMessage, [
-                'theme' => $themeName,
-                'status' => $response->status(),
-                'response' => $response->json()
-            ]);
 
             return [
                 'success' => false,
