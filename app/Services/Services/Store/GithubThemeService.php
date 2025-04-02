@@ -2,7 +2,7 @@
 
 namespace App\Services\Services\Store;
 
-use App\Services\Constructors\GithubThemeConstructor;
+use App\Services\Constructors\Store\GithubThemeConstructor;
 use App\Services\Facades\StoreFacade;
 use App\Http\Resources\GithubThemeResource;
 use App\Services\Services\Store\Traits\GithubThemeServiceTrait;

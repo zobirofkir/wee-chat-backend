@@ -2,7 +2,7 @@
 
 namespace App\Services\Services\Store;
 
-use App\Services\Constructors\ThemeCustomizationConstructor;
+use App\Services\Constructors\Store\ThemeCustomizationConstructor;
 use App\Http\Resources\ThemeCustomizationResource;
 use App\Http\Resources\ThemeResource;
 use Illuminate\Http\Request;

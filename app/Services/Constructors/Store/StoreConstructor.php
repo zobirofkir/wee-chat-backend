@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Constructors;
+namespace App\Services\Constructors\Store;
 
 use App\Models\Store;
 use App\Models\User;

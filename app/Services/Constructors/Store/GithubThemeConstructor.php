@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Constructors;
+namespace App\Services\Constructors\Store;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;

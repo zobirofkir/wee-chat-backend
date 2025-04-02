@@ -5,7 +5,7 @@ namespace App\Services\Services\Store;
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
 use App\Models\User;
-use App\Services\Constructors\StoreConstructor;
+use App\Services\Constructors\Store\StoreConstructor;
 use App\Services\Services\Store\Traits\StoreServiceTrait;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
