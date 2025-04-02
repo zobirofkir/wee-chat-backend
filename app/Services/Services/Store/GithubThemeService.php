@@ -15,6 +15,13 @@ use Illuminate\Http\JsonResponse;
 class GithubThemeService implements GithubThemeConstructor
 {
     /**
+     * Cache key for the themes list
+     *
+     * @var string
+     */
+    private string $cacheKey = 'github_themes_list';
+
+    /**
      * Cache TTL in seconds (1 hour)
      */
     protected $cacheTtl = 3600;
@@ -40,63 +47,48 @@ class GithubThemeService implements GithubThemeConstructor
      */
     public function index() : JsonResponse
     {
-        $cacheKey = 'github_themes_list';
+        $themes = Cache::get($this->cacheKey) ?? $this->fetchAndCacheThemes();
 
-        if (Cache::has($cacheKey)) {
-            return response()->json([
-                'success' => true,
-                'themes' => GithubThemeResource::collection(Cache::get($cacheKey)),
-                'source' => 'cache'
-            ]);
+        return response()->json([
+            'themes' => GithubThemeResource::collection($themes),
+            'source' => Cache::has($this->cacheKey) ? 'cache' : 'api'
+        ]);
+    }
+
+    private function fetchAndCacheThemes()
+    {
+        $response = Http::withHeaders($this->getGithubHeaders())
+            ->get('https://api.github.com/repos/zobirofkir/wee-build-themes/contents');
+
+        if (!$response->successful()) {
+            return $this->handleApiError($response);
         }
 
-            $response = Http::withHeaders($this->getGithubHeaders())
-                ->get('https://api.github.com/repos/zobirofkir/wee-build-themes/contents');
+        $themes = collect($response->json())
+            ->where('type', 'dir')
+            ->map(fn($item) => [
+                'id' => $item['sha'],
+                'name' => $item['name'],
+                'path' => $item['path'],
+                'url' => $item['html_url'],
+                'test_url' => $this->generateTestUrl($item['name']),
+                'type' => 'free',
+                'category' => 'e-commerce'
+            ])
+            ->values()
+            ->toArray();
 
-            if ($response->successful()) {
-                $contents = $response->json();
+        Cache::put($this->cacheKey, $themes, $this->cacheTtl);
 
-                $themes = collect($contents)
-                    ->filter(function ($item) {
-                        return $item['type'] === 'dir';
-                    })
-                    ->map(function ($item) {
-                        return [
-                            'id' => $item['sha'],
-                            'name' => $item['name'],
-                            'path' => $item['path'],
-                            'url' => $item['html_url'],
-                            'test_url' => $this->generateTestUrl($item['name']),
-                            'type' => 'free',
-                            'category' => 'e-commerce'
-                        ];
-                    })
-                    ->values();
+        return $themes;
+    }
 
-                Cache::put($cacheKey, $themes, $this->cacheTtl);
-
-                return response()->json([
-                    'success' => true,
-                    'themes' => GithubThemeResource::collection($themes),
-                    'source' => 'api'
-                ]);
-            }
-
-            $errorMessage = 'Unable to fetch themes';
-            if ($response->json('message')) {
-                $errorMessage = $response->json('message');
-            }
-
-            Log::error('GitHub API error: ' . $errorMessage, [
-                'status' => $response->status(),
-                'response' => $response->json()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => $errorMessage,
-                'status_code' => $response->status()
-            ], $response->status());
+    private function handleApiError($response) : JsonResponse
+    {
+        return response()->json([
+            'message' => $response->json('message', 'Unable to fetch themes'),
+            'status_code' => $response->status()
+        ], $response->status());
     }
 
     /**
