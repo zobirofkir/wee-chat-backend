@@ -1,9 +1,11 @@
 <?php
 namespace App\Services\Services\Store\Traits;
 use App\Models\Store;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 trait StoreServiceTrait
 {
@@ -128,4 +130,21 @@ trait StoreServiceTrait
         return $files;
     }
 
+
+    /**
+     * Generate store name
+     *
+     * @param User $user
+     * @return string
+     */
+    private function generateStoreName(User $user) : string
+    {
+        return "Store of " . $user->username;
+    }
+
+    private function generateDomain(User $user) : string
+    {
+        $baseDomain = app()->environment('local') ? 'localhost' : 'wee-build.com';
+        return Str::slug($user->username) . ".$baseDomain";
+    }
 }

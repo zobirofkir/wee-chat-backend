@@ -14,7 +14,7 @@ class StoreServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind('StoreService', StoreService::class);
+        $this->app->singleton('StoreService', StoreService::class);
     }
 
     /**

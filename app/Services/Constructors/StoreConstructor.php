@@ -3,6 +3,7 @@
 namespace App\Services\Constructors;
 
 use App\Models\Store;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -14,7 +15,7 @@ interface StoreConstructor
      * @param [type] $user
      * @return Store
      */
-    public function createStore($user) : Store;
+    public function createStore(User $user) : Store;
 
     /**
      * Show store

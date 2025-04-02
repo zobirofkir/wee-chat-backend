@@ -4,6 +4,7 @@ namespace App\Services\Services\Store;
 
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
+use App\Models\User;
 use App\Services\Constructors\StoreConstructor;
 use App\Services\Services\Store\Traits\StoreServiceTrait;
 use Illuminate\Support\Str;
@@ -26,20 +27,12 @@ class StoreService implements StoreConstructor
      * @param [type] $user
      * @return Store
      */
-    public function createStore($user) : Store
+    public function createStore(User $user) : Store
     {
-        $storeName = "Store of " . $user->username;
-        $domain = Str::slug($user->username) . ".wee-build.com";
-
-        if (app()->environment('local')) {
-            $domain = Str::slug($user->username) . ".localhost";
-        }
-
         $store = Store::create([
             'user_id' => $user->id,
-            'name' => $storeName,
-            'domain' => $domain,
-            'is_active' => true,
+            'name' => $this->generateStoreName($user),
+            'domain' => $this->generateDomain($user)
         ]);
 
         $this->configureDomain($store);

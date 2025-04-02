@@ -3,7 +3,7 @@
 namespace App\Observers;
 
 use App\Models\User;
-use App\Services\Facades\StoreFacade;
+use App\Services\Facades\Store\StoreFacade;
 
 class UserObserver
 {
