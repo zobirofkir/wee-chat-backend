@@ -48,9 +48,9 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $defaultOptions = $this->getDefaultCustomizationOptions($store->theme);
         $customOptions = $this->getCustomOptions($customizationPath);
 
-        return response()->json(new ThemeCustomizationResource(array_merge($defaultOptions, $customOptions)));
+        return response()->json(ThemeCustomizationResource::make(array_merge($defaultOptions, $customOptions)));
     }
-    
+
     /**
      * Update theme customization
      *
@@ -82,7 +82,7 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         try {
             Storage::put($customizationPath, json_encode($customOptions, JSON_PRETTY_PRINT));
 
-            return response()->json(new ThemeCustomizationResource($customOptions));
+            return response()->json(ThemeCustomizationResource::make($customOptions));
         } catch (\Exception $e) {
             Log::error('Failed to update theme customization: ' . $e->getMessage());
             return response()->json(
@@ -119,7 +119,7 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
 
             $defaultOptions = $this->getDefaultCustomizationOptions($store->theme);
 
-            return response()->json(new ThemeCustomizationResource($defaultOptions));
+            return response()->json(ThemeCustomizationResource::make($defaultOptions));
         } catch (\Exception $e) {
             Log::error('Failed to reset theme customization: ' . $e->getMessage());
             return response()->json(
