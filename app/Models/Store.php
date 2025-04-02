@@ -45,4 +45,14 @@ class Store extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Check if the store has an active theme
+     *
+     * @return boolean
+     */
+    public function hasActiveTheme(): bool
+    {
+        return !empty($this->theme);
+    }
 }

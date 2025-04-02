@@ -2,6 +2,8 @@
 namespace App\Services\Services\Store\Traits;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\ThemeCustomizationResource;
+use App\Models\Store;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 trait ThemeCustomizationTrait
@@ -119,5 +121,39 @@ trait ThemeCustomizationTrait
     private function errorResponse(string $message, int $statusCode) : JsonResponse
     {
         return response()->json(ThemeCustomizationResource::error($message), $statusCode);
+    }
+
+    /**
+     * Get theme data
+     *
+     * @param User $user
+     * @param Store $store
+     * @return array
+     */
+    private function getThemeData(User $user, Store $store): array
+    {
+        $themePath = "themes/user_{$user->id}/{$store->theme}";
+        $themeInfoPath = "{$themePath}/theme-info.json";
+
+        return [
+            'name' => $store->theme,
+            'applied_at' => $store->theme_applied_at,
+            'storage_path' => $store->theme_storage_path,
+            'preview_url' => url("storage/{$themePath}/index.html"),
+            'info' => $this->getThemeInfo($themeInfoPath),
+        ];
+    }
+
+    /**
+     * Get theme info
+     *
+     * @param string $themeInfoPath
+     * @return array
+     */
+    private function getThemeInfo(string $themeInfoPath): array
+    {
+        return Storage::exists($themeInfoPath)
+            ? json_decode(Storage::get($themeInfoPath), true)
+            : [];
     }
 }

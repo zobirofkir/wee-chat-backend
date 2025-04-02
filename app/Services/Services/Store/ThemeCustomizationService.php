@@ -73,7 +73,7 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
 
         return $this->saveCustomization($user->id, $store->theme, $customOptions);
     }
-    
+
     /**
      * Reset theme customization to default
      *
@@ -94,21 +94,12 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
 
         $customizationPath = $this->getCustomizationPath($user->id, $store->theme);
 
-        try {
-            if (Storage::exists($customizationPath)) {
-                Storage::delete($customizationPath);
-            }
-
-            $defaultOptions = $this->getDefaultCustomizationOptions($store->theme);
-
-            return response()->json(ThemeCustomizationResource::make($defaultOptions));
-        } catch (\Exception $e) {
-            Log::error('Failed to reset theme customization: ' . $e->getMessage());
-            return response()->json(
-                ThemeCustomizationResource::error('Failed to reset theme customization'),
-                500
-            );
+        if (Storage::exists($customizationPath)) {
+            Storage::delete($customizationPath);
         }
+
+        $defaultOptions = $this->getDefaultCustomizationOptions($store->theme);
+        return response()->json(ThemeCustomizationResource::make($defaultOptions));
     }
 
     /**
@@ -117,33 +108,19 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
      * @param Request $request
      * @return JsonResponse
      */
-    public function getCurrentTheme(Request $request) : JsonResponse
+    public function getCurrentTheme(Request $request): JsonResponse
     {
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store || !$store->theme) {
+        if (!$user->store->hasActiveTheme($store)) {
             return response()->json(
                 ThemeResource::error('No active theme found for this store'),
                 404
             );
         }
 
-        $themePath = "themes/user_{$user->id}/{$store->theme}";
-        $themeInfoPath = "{$themePath}/theme-info.json";
-
-        $themeInfo = [];
-        if (Storage::exists($themeInfoPath)) {
-            $themeInfo = json_decode(Storage::get($themeInfoPath), true);
-        }
-
-        $themeData = [
-            'name' => $store->theme,
-            'applied_at' => $store->theme_applied_at,
-            'storage_path' => $store->theme_storage_path,
-            'preview_url' => url("storage/themes/user_{$user->id}/{$store->theme}/index.html"),
-            'info' => $themeInfo
-        ];
+        $themeData = $this->getThemeData($user, $store);
 
         return response()->json(ThemeResource::make($themeData));
     }
