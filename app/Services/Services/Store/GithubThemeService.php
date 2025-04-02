@@ -107,10 +107,11 @@ class GithubThemeService implements GithubThemeConstructor
     public function applyTheme(Request $request, string $themeName): JsonResponse
     {
         $user = $request->user();
-
         $store = $user->store;
 
-        $this->removeOldTheme($user->id, $store->theme);
+        if ($store->theme) {
+            $this->removeOldTheme($user->id, $store->theme);
+        }
 
         $cloneResult = $this->cloneAndExtractTheme($themeName, $user->id);
 
