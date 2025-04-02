@@ -10,6 +10,18 @@ use Illuminate\Support\Str;
 trait StoreServiceTrait
 {
     /**
+     * Get theme storage path
+     *
+     * @param int $userId
+     * @param string $themeName
+     * @return string
+     */
+    private function getThemeStoragePath(int $userId, string $themeName) : string
+    {
+        return "themes/user_{$userId}/{$themeName}";
+    }
+
+    /**
      * Configure domain for the store
      *
      * @param Store $store

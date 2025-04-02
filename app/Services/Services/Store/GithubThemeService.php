@@ -6,6 +6,7 @@ use App\Services\Constructors\Store\GithubThemeConstructor;
 use App\Services\Facades\StoreFacade;
 use App\Http\Resources\GithubThemeResource;
 use App\Services\Services\Store\Traits\GithubThemeServiceTrait;
+use App\Services\Services\Store\Traits\StoreServiceTrait;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
@@ -20,6 +21,7 @@ class GithubThemeService implements GithubThemeConstructor
      */
     use GithubThemeServiceTrait;
 
+    
     /**
      * Display a listing of the resource.
      *
@@ -121,7 +123,7 @@ class GithubThemeService implements GithubThemeConstructor
             return $this->jsonError('Store not found for this user', 404);
         }
 
-        $this->removeOldTheme($store, $user->id);
+        $this->removeOldTheme($user->id, $store->theme);
 
         $cloneResult = $this->cloneAndExtractTheme($themeName, $user->id);
 

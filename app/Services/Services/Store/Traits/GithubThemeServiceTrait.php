@@ -11,6 +11,18 @@ use Illuminate\Support\Facades\Storage;
 trait GithubThemeServiceTrait
 {
     /**
+     * Get theme storage path
+     *
+     * @param int $userId
+     * @param string $themeName
+     * @return string
+     */
+    private function getThemeStoragePath(int $userId, string $themeName) : string
+    {
+        return "themes/user_{$userId}/{$themeName}";
+    }
+
+    /**
      * Cache key for the themes list
      *
      * @var string
@@ -258,14 +270,15 @@ trait GithubThemeServiceTrait
      * @param integer $userId
      * @return void
      */
-    private function removeOldTheme($store, int $userId): void
+    private function removeOldTheme(int $userId, string $themeName) : bool
     {
-        if ($store->theme && $store->theme !== request('themeName')) {
-            $oldThemePath = storage_path("app/public/themes/user_{$userId}/{$store->theme}");
-            if (is_dir($oldThemePath)) {
-                Storage::deleteDirectory($oldThemePath);
-            }
+        $storagePath = $this->getThemeStoragePath($userId, $themeName);
+
+        if (Storage::disk('public')->exists($storagePath)) {
+            return Storage::disk('public')->deleteDirectory($storagePath);
         }
+
+        return false;
     }
 
     /**

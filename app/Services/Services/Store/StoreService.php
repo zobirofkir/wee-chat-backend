@@ -159,18 +159,6 @@ class StoreService implements StoreConstructor
     }
 
     /**
-     * Get theme storage path
-     *
-     * @param int $userId
-     * @param string $themeName
-     * @return string
-     */
-    public function getThemeStoragePath(int $userId, string $themeName) : string
-    {
-        return "themes/user_{$userId}/{$themeName}";
-    }
-
-    /**
      * Get stored theme data
      *
      * @param int $userId
