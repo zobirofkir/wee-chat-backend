@@ -6,7 +6,7 @@ use App\Models\Store;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-
+use Illuminate\Http\Response;
 interface StoreConstructor
 {
     /**
@@ -26,11 +26,23 @@ interface StoreConstructor
     public function show(Request $request) : JsonResponse;
 
     /**
-     * Apply theme to store
+     * Serve store theme
      *
      * @param Request $request
-     * @param string $themeName
-     * @return JsonResponse
+     * @param string $domain
+     * @param string|null $path
+     * @return Response
      */
-    public function applyTheme(Request $request, string $themeName) : JsonResponse;
+    public function serveStoreTheme(Request $request, string $domain, string $path = null) : Response;
+
+    /**
+     * Serve theme file
+     *
+     * @param Request $request
+     * @param integer $userId
+     * @param string $themeName
+     * @param string $filePath
+     * @return Response
+     */
+    public function serveThemeFile(Request $request, int $userId, string $themeName, string $filePath = 'index.html') : Response;
 }

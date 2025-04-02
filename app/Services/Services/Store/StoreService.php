@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Response;
 
 class StoreService implements StoreConstructor
 {
@@ -41,22 +42,6 @@ class StoreService implements StoreConstructor
     }
 
     /**
-     * Activate or deactivate a store
-     *
-     * @param Store $store
-     * @param bool $active
-     * @return Store
-     */
-    public function setStoreStatus(Store $store, bool $active = true) : Store
-    {
-        $store->update([
-            'is_active' => $active,
-        ]);
-
-        return $store;
-    }
-
-    /**
      * Show store
      *
      * @param Request $request
@@ -74,151 +59,56 @@ class StoreService implements StoreConstructor
     }
 
     /**
-     * Apply theme to store
+     * Serve theme file
      *
      * @param Request $request
+     * @param integer $userId
      * @param string $themeName
-     * @return \Illuminate\Http\JsonResponse
+     * @param string $filePath
+     * @return Response
      */
-    public function applyTheme(Request $request, string $themeName) : JsonResponse
+    public function serveThemeFile(Request $request, int $userId, string $themeName, string $filePath = 'index.html') : Response
     {
-        $user = $request->user();
-        $store = $user->store;
+        $path = "themes/user_{$userId}/{$themeName}/{$filePath}";
 
-        if (!$store) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Store not found for this user'
-            ], 404);
+        if (!Storage::exists($path)) {
+            abort(404);
         }
 
-        if ($store->theme && $store->theme !== $themeName) {
-            $this->removeOldTheme($user->id, $store->theme);
-        }
+        $file = Storage::get($path);
+        $type = Storage::mimeType($path);
 
-        $themeData = $request->input('theme_data');
-
-        $this->saveThemeToStorage($user->id, $themeName, $themeData);
-
-        $store->update([
-            'theme' => $themeName,
-            'theme_applied_at' => now(),
-            'theme_storage_path' => $this->getThemeStoragePath($user->id, $themeName)
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Theme applied and saved successfully',
-            'store' => $store
-        ]);
+        return response($file)->header('Content-Type', $type);
     }
 
     /**
-     * Save theme to local storage
+     * Serve store theme
      *
-     * @param int $userId
-     * @param string $themeName
-     * @param array|null $themeData
-     * @return bool
+     * @param Request $request
+     * @param string $domain
+     * @param string|null $path
+     * @return Response
      */
-    public function saveThemeToStorage(int $userId, string $themeName, $themeData = null) : bool
+    public function serveStoreTheme(Request $request, string $domain, string $path = null) : Response
     {
-        $storagePath = $this->getThemeStoragePath($userId, $themeName);
+        $store = Store::where('domain', $domain)->first();
 
-        if (!Storage::disk('public')->exists(dirname($storagePath))) {
-            Storage::disk('public')->makeDirectory(dirname($storagePath), 0755, true);
+        if (!$store || !$store->is_active || !$store->theme) {
+            abort(404);
         }
 
-        if ($themeData && isset($themeData['files'])) {
-            $success = true;
+        $filePath = $path ?: 'index.html';
 
-            Storage::disk('public')->put($storagePath . '/theme-info.json', json_encode([
-                'name' => $themeName,
-                'installed_at' => now()->toDateTimeString(),
-            ]));
+        $storagePath = "themes/user_{$store->user_id}/{$store->theme}/{$filePath}";
 
-            foreach ($themeData['files'] as $file) {
-                if ($file['type'] === 'file') {
-                    $fileContent = $this->downloadFileContent($file['download_url']);
-                    if ($fileContent) {
-                        $filePath = $storagePath . '/' . $file['name'];
-                        $result = Storage::disk('public')->put($filePath, $fileContent);
-                        $success = $success && $result;
-                    }
-                } elseif ($file['type'] === 'dir') {
-                    Storage::disk('public')->makeDirectory($storagePath . '/' . $file['name'], 0755, true);
-
-                    $this->downloadDirectory($userId, $themeName, $file['path']);
-                }
-            }
-
-            return $success;
+        if (!Storage::exists($storagePath)) {
+            abort(404);
         }
 
-        return Storage::disk('public')->put($storagePath . '/index.html', '<html><body><h1>Theme: ' . $themeName . '</h1><p>Installed at: ' . now()->toDateTimeString() . '</p></body></html>');
+        $file = Storage::get($storagePath);
+        $type = Storage::mimeType($storagePath);
+
+        return response($file)->header('Content-Type', $type);
     }
 
-    /**
-     * Get stored theme data
-     *
-     * @param int $userId
-     * @param string $themeName
-     * @return array|null
-     */
-    public function getStoredThemeData(int $userId, string $themeName) : ?array
-    {
-        $storagePath = $this->getThemeStoragePath($userId, $themeName);
-        $infoPath = $storagePath . '/theme-info.json';
-
-        if (Storage::disk('public')->exists($infoPath)) {
-            $themeInfo = json_decode(Storage::disk('public')->get($infoPath), true);
-
-            $files = $this->getThemeFiles($storagePath);
-
-            return [
-                'name' => $themeName,
-                'installed_at' => $themeInfo['installed_at'] ?? now()->toDateTimeString(),
-                'files' => $files,
-                'preview_url' => asset("storage/{$storagePath}/index.html")
-            ];
-        }
-
-        return null;
-    }
-
-    /**
-     * List all stored themes for a user
-     *
-     * @param int $userId
-     * @return array
-     */
-    public function listStoredThemes(int $userId) : array
-    {
-        $basePath = "themes/user_{$userId}";
-
-        if (!Storage::disk('public')->exists($basePath)) {
-            return [];
-        }
-
-        $directories = Storage::disk('public')->directories($basePath);
-        $themes = [];
-
-        foreach ($directories as $directory) {
-            $themeName = basename($directory);
-            $infoPath = $directory . '/theme-info.json';
-
-            if (Storage::disk('public')->exists($infoPath)) {
-                $themeInfo = json_decode(Storage::disk('public')->get($infoPath), true);
-
-                $themes[] = [
-                    'name' => $themeName,
-                    'path' => $directory,
-                    'installed_at' => $themeInfo['installed_at'] ?? null,
-                    'preview_url' => asset("storage/{$directory}/index.html")
-                ];
-            }
-        }
-
-        return $themes;
-    }
 }

@@ -38,24 +38,6 @@ trait StoreServiceTrait
     }
 
     /**
-     * Remove old theme from storage
-     *
-     * @param int $userId
-     * @param string $themeName
-     * @return bool
-     */
-    private function removeOldTheme(int $userId, string $themeName) : bool
-    {
-        $storagePath = $this->getThemeStoragePath($userId, $themeName);
-
-        if (Storage::disk('public')->exists($storagePath)) {
-            return Storage::disk('public')->deleteDirectory($storagePath);
-        }
-
-        return false;
-    }
-
-    /**
      * Download file content from GitHub
      *
      * @param string $url
