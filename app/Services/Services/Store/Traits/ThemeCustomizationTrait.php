@@ -1,5 +1,6 @@
 <?php
 namespace App\Services\Services\Store\Traits;
+use Illuminate\Support\Facades\Storage;
 
 trait ThemeCustomizationTrait
 {
@@ -10,7 +11,7 @@ trait ThemeCustomizationTrait
      * @param string $themeName
      * @return string
      */
-    protected function getCustomizationPath(int $userId, string $themeName) : string
+    private function getCustomizationPath(int $userId, string $themeName) : string
     {
         return "themes/user_{$userId}/{$themeName}/customization.json";
     }
@@ -21,7 +22,7 @@ trait ThemeCustomizationTrait
      * @param string $themeName
      * @return array
      */
-    protected function getDefaultCustomizationOptions(string $themeName) : array
+    private function getDefaultCustomizationOptions(string $themeName) : array
     {
         return [
             'colors' => [
@@ -77,5 +78,16 @@ trait ThemeCustomizationTrait
         }
 
         return $content;
+    }
+
+    /**
+     * Get custom options
+     *
+     * @param string $path
+     * @return array
+     */
+    private function getCustomOptions(string $path): array
+    {
+        return Storage::exists($path) ? json_decode(Storage::get($path), true) : [];
     }
 }
