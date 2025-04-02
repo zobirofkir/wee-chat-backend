@@ -195,49 +195,27 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store || !$store->theme) {
-            return response()->json(
-                ThemeCustomizationResource::error('No active theme found for this store'),
-                404
-            );
+        $themePath = "themes/user_{$user->id}/{$store->theme}";
+
+        $files = Storage::disk('public')->allFiles($themePath);
+        $htmlFiles = [];
+
+        foreach ($files as $file) {
+            if (pathinfo($file, PATHINFO_EXTENSION) === 'html') {
+                $relativePath = str_replace($themePath . '/', '', $file);
+                $htmlFiles[] = [
+                    'name' => basename($file),
+                    'path' => $relativePath,
+                    'full_path' => $file,
+                    'size' => Storage::disk('public')->size($file),
+                    'last_modified' => Storage::disk('public')->lastModified($file)
+                ];
+            }
         }
 
-        try {
-            $themePath = "themes/user_{$user->id}/{$store->theme}";
-
-            if (!Storage::disk('public')->exists($themePath)) {
-                return response()->json(
-                    ThemeCustomizationResource::error('Theme directory not found'),
-                    404
-                );
-            }
-
-            $files = Storage::disk('public')->allFiles($themePath);
-            $htmlFiles = [];
-
-            foreach ($files as $file) {
-                if (pathinfo($file, PATHINFO_EXTENSION) === 'html') {
-                    $relativePath = str_replace($themePath . '/', '', $file);
-                    $htmlFiles[] = [
-                        'name' => basename($file),
-                        'path' => $relativePath,
-                        'full_path' => $file,
-                        'size' => Storage::disk('public')->size($file),
-                        'last_modified' => Storage::disk('public')->lastModified($file)
-                    ];
-                }
-            }
-
-            return response()->json([
-                'files' => $htmlFiles,
-                'total' => count($htmlFiles)
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to list HTML files: ' . $e->getMessage());
-            return response()->json(
-                ThemeCustomizationResource::error('Failed to list HTML files'),
-                500
-            );
-        }
+        return response()->json([
+            'files' => $htmlFiles,
+            'total' => count($htmlFiles)
+        ]);
     }
 }
