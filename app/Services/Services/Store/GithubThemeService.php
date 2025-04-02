@@ -5,6 +5,7 @@ namespace App\Services\Services\Store;
 use App\Services\Constructors\GithubThemeConstructor;
 use App\Services\Facades\StoreFacade;
 use App\Http\Resources\GithubThemeResource;
+use App\Services\Services\Store\Traits\GithubThemeServiceTrait;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Cache;
@@ -14,6 +15,11 @@ use Illuminate\Http\JsonResponse;
 
 class GithubThemeService implements GithubThemeConstructor
 {
+    /**
+     * Use the GithubThemeServiceTrait
+     */
+    use GithubThemeServiceTrait;
+
     /**
      * Cache key for the themes list
      *
@@ -25,21 +31,7 @@ class GithubThemeService implements GithubThemeConstructor
      * Cache TTL in seconds (1 hour)
      */
     protected $cacheTtl = 3600;
-
-    /**
-     * Get GitHub API headers with authentication if available
-     *
-     * @return array
-     */
-    protected function getGithubHeaders(): array
-    {
-        $headers = [];
-        if (config('services.github.token')) {
-            $headers['Authorization'] = 'token ' . config('services.github.token');
-        }
-        return $headers;
-    }
-
+    
     /**
      * Display a listing of the resource.
      *
@@ -53,51 +45,6 @@ class GithubThemeService implements GithubThemeConstructor
             'themes' => GithubThemeResource::collection($themes),
             'source' => Cache::has($this->cacheKey) ? 'cache' : 'api'
         ]);
-    }
-
-    /**
-     * Fetch themes from GitHub and cache themes list
-     */
-    private function fetchAndCacheThemes()
-    {
-        $response = Http::withHeaders($this->getGithubHeaders())
-            ->get('https://api.github.com/repos/zobirofkir/wee-build-themes/contents');
-
-        if (!$response->successful()) {
-            return $this->handleApiError($response);
-        }
-
-        $themes = collect($response->json())
-            ->where('type', 'dir')
-            ->map(fn($item) => [
-                'id' => $item['sha'],
-                'name' => $item['name'],
-                'path' => $item['path'],
-                'url' => $item['html_url'],
-                'test_url' => $this->generateTestUrl($item['name']),
-                'type' => 'free',
-                'category' => 'e-commerce'
-            ])
-            ->values()
-            ->toArray();
-
-        Cache::put($this->cacheKey, $themes, $this->cacheTtl);
-
-        return $themes;
-    }
-
-    /**
-     * Handle API error responses
-     *
-     * @param [type] $response
-     * @return JsonResponse
-     */
-    private function handleApiError($response) : JsonResponse
-    {
-        return response()->json([
-            'message' => $response->json('message', 'Unable to fetch themes'),
-            'status_code' => $response->status()
-        ], $response->status());
     }
 
     /**
