@@ -135,94 +135,53 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store || !$store->theme) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No active theme found for this store'
-            ], 404);
-        }
-
         $filePath = $request->input('file_path');
 
         if (!$filePath) {
+
             /**
              * If no file path provided, return list of available files
-             */
-            try {
-                $themePath = "themes/user_{$user->id}/{$store->theme}";
+            */
 
-                if (!Storage::disk('public')->exists($themePath)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Theme directory not found'
-                    ], 404);
-                }
-
-                $files = Storage::disk('public')->allFiles($themePath);
-                $availableFiles = [];
-
-                foreach ($files as $file) {
-                    if (basename($file) !== 'theme-info.json') {
-                        $relativePath = str_replace($themePath . '/', '', $file);
-                        $availableFiles[] = [
-                            'name' => basename($file),
-                            'path' => $relativePath,
-                            'type' => pathinfo($file, PATHINFO_EXTENSION),
-                            'size' => Storage::disk('public')->size($file),
-                            'last_modified' => Storage::disk('public')->lastModified($file)
-                        ];
-                    }
-                }
-
-                return response()->json([
-                    'data' => $availableFiles,
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to list theme files: ' . $e->getMessage());
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to list theme files',
-                    'error' => $e->getMessage()
-                ], 500);
-            }
-        }
-
-        try {
             $themePath = "themes/user_{$user->id}/{$store->theme}";
 
-            if (!Storage::disk('public')->exists("{$themePath}/{$filePath}")) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Theme file not found',
-                    'details' => [
-                        'file_path' => $filePath,
-                        'theme_path' => $themePath
-                    ]
-                ], 404);
+            $files = Storage::disk('public')->allFiles($themePath);
+            $availableFiles = [];
+
+            foreach ($files as $file) {
+                if (basename($file) !== 'theme-info.json') {
+                    $relativePath = str_replace($themePath . '/', '', $file);
+                    $availableFiles[] = [
+                        'name' => basename($file),
+                        'path' => $relativePath,
+                        'type' => pathinfo($file, PATHINFO_EXTENSION),
+                        'size' => Storage::disk('public')->size($file),
+                        'last_modified' => Storage::disk('public')->lastModified($file)
+                    ];
+                }
             }
 
-            $content = Storage::disk('public')->get("{$themePath}/{$filePath}");
-            $fileType = pathinfo($filePath, PATHINFO_EXTENSION);
-
             return response()->json([
-                'success' => true,
-                'content' => $content,
-                'file_info' => [
-                    'path' => $filePath,
-                    'type' => $fileType,
-                    'size' => Storage::disk('public')->size("{$themePath}/{$filePath}"),
-                    'last_modified' => Storage::disk('public')->lastModified("{$themePath}/{$filePath}")
-                ],
-                'theme_path' => $themePath
+                'data' => $availableFiles,
             ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to get theme file: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to get theme file',
-                'error' => $e->getMessage()
-            ], 500);
         }
+
+        $themePath = "themes/user_{$user->id}/{$store->theme}";
+
+        $content = Storage::disk('public')->get("{$themePath}/{$filePath}");
+        $fileType = pathinfo($filePath, PATHINFO_EXTENSION);
+
+        return response()->json([
+            'success' => true,
+            'content' => $content,
+            'file_info' => [
+                'path' => $filePath,
+                'type' => $fileType,
+                'size' => Storage::disk('public')->size("{$themePath}/{$filePath}"),
+                'last_modified' => Storage::disk('public')->lastModified("{$themePath}/{$filePath}")
+            ],
+            'theme_path' => $themePath
+        ]);
     }
 
     /**
