@@ -5,6 +5,7 @@ namespace App\Services\Services\Store;
 use App\Services\Constructors\Store\ThemeCustomizationConstructor;
 use App\Http\Resources\ThemeCustomizationResource;
 use App\Http\Resources\ThemeResource;
+use App\Services\Services\Store\Traits\ThemeCustomizationTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +13,11 @@ use Illuminate\Support\Facades\Log;
 
 class ThemeCustomizationService implements ThemeCustomizationConstructor
 {
+    /**
+     * Theme customization trait
+     */
+    use ThemeCustomizationTrait;
+
     /**
      * Get theme customization options
      *
@@ -120,45 +126,6 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
     }
 
     /**
-     * Get customization file path
-     *
-     * @param int $userId
-     * @param string $themeName
-     * @return string
-     */
-    protected function getCustomizationPath(int $userId, string $themeName) : string
-    {
-        return "themes/user_{$userId}/{$themeName}/customization.json";
-    }
-
-    /**
-     * Get default customization options for a theme
-     *
-     * @param string $themeName
-     * @return array
-     */
-    protected function getDefaultCustomizationOptions(string $themeName) : array
-    {
-        return [
-            'colors' => [
-                'primary' => '#007bff',
-                'secondary' => '#6c757d',
-                'background' => '#ffffff',
-                'text' => '#212529'
-            ],
-            'typography' => [
-                'font_family' => 'Arial, sans-serif',
-                'font_size' => '16px',
-                'line_height' => '1.5'
-            ],
-            'layout' => [
-                'container_width' => '1200px',
-                'spacing' => '1rem'
-            ]
-        ];
-    }
-
-    /**
      * Get current theme information
      *
      * @param Request $request
@@ -262,37 +229,6 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
     }
 
     /**
-     * Update specific element in the file content
-     *
-     * @param string $content
-     * @param string $section
-     * @param string $element
-     * @param string $newContent
-     * @return string
-     */
-    protected function updateSpecificElement(string $content, string $section, string $element, string $newContent) : string
-    {
-        // Find the section
-        $sectionPattern = "/<section[^>]*class=\"[^\"]*{$section}[^\"]*\"[^>]*>(.*?)<\/section>/s";
-        if (preg_match($sectionPattern, $content, $sectionMatches)) {
-            $sectionContent = $sectionMatches[1];
-
-            // Find the element within the section
-            $elementPattern = "/<{$element}[^>]*>(.*?)<\/{$element}>/s";
-            if (preg_match($elementPattern, $sectionContent)) {
-                // Replace the element content
-                $content = preg_replace(
-                    $elementPattern,
-                    "<{$element}>{$newContent}</{$element}>",
-                    $content
-                );
-            }
-        }
-
-        return $content;
-    }
-
-    /**
      * Get theme file content
      *
      * @param Request $request
@@ -313,7 +249,9 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $filePath = $request->input('file_path');
 
         if (!$filePath) {
-            // If no file path provided, return list of available files
+            /**
+             * If no file path provided, return list of available files
+             */
             try {
                 $themePath = "themes/user_{$user->id}/{$store->theme}";
 
