@@ -106,40 +106,22 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $section = $request->input('section');
         $element = $request->input('element');
 
-        try {
-            $themePath = "themes/user_{$user->id}/{$store->theme}";
-            $fullPath = Storage::disk('public')->path("{$themePath}/{$filePath}");
+        $themePath = "themes/user_{$user->id}/{$store->theme}";
+        $fullPath = Storage::disk('public')->path("{$themePath}/{$filePath}");
 
-            if (!Storage::disk('public')->exists("{$themePath}/{$filePath}")) {
-                return response()->json(
-                    ThemeCustomizationResource::error('Theme file not found'),
-                    404
-                );
-            }
+        $fileContent = Storage::disk('public')->get("{$themePath}/{$filePath}");
 
-            $fileContent = Storage::disk('public')->get("{$themePath}/{$filePath}");
-
-            if ($section && $element) {
-                // Update specific section and element
-                $fileContent = $this->updateSpecificElement($fileContent, $section, $element, $content);
-            } else {
-                // Update entire file
-                $fileContent = $content;
-            }
-
-            Storage::disk('public')->put("{$themePath}/{$filePath}", $fileContent);
-
-            return response()->json([
-                'message' => 'Theme file updated successfully',
-                'file_path' => $filePath
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to update theme file: ' . $e->getMessage());
-            return response()->json(
-                ThemeCustomizationResource::error('Failed to update theme file'),
-                500
-            );
+        if ($section && $element) {
+            $fileContent = $this->updateSpecificElement($fileContent, $section, $element, $content);
+        } else {
+            $fileContent = $content;
         }
+
+        Storage::disk('public')->put("{$themePath}/{$filePath}", $fileContent);
+
+        return response()->json([
+            'file_path' => $filePath
+        ]);
     }
 
     /**
