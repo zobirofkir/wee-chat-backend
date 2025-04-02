@@ -48,14 +48,7 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store?->theme) {
-            return $this->errorResponse('No active theme found for this store', 404);
-        }
-
         $customOptions = $request->input('options');
-        if (empty($customOptions)) {
-            return $this->errorResponse('No customization options provided', 400);
-        }
 
         return $this->saveCustomization($user->id, $store->theme, $customOptions);
     }
@@ -70,13 +63,6 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
     {
         $user = $request->user();
         $store = $user->store;
-
-        if (!$store || !$store->theme) {
-            return response()->json(
-                ThemeCustomizationResource::error('No active theme found for this store'),
-                404
-            );
-        }
 
         $customizationPath = $this->getCustomizationPath($user->id, $store->theme);
 
@@ -99,13 +85,6 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $user = $request->user();
         $store = $user->store;
 
-        if (!$user->store->hasActiveTheme($store)) {
-            return response()->json(
-                ThemeResource::error('No active theme found for this store'),
-                404
-            );
-        }
-
         $themeData = $this->getThemeData($user, $store);
 
         return response()->json(ThemeResource::make($themeData));
@@ -122,24 +101,10 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store || !$store->theme) {
-            return response()->json(
-                ThemeCustomizationResource::error('No active theme found for this store'),
-                404
-            );
-        }
-
         $filePath = $request->input('file_path');
         $content = $request->input('content');
         $section = $request->input('section');
         $element = $request->input('element');
-
-        if (!$filePath || !$content) {
-            return response()->json(
-                ThemeCustomizationResource::error('File path and content are required'),
-                400
-            );
-        }
 
         try {
             $themePath = "themes/user_{$user->id}/{$store->theme}";
