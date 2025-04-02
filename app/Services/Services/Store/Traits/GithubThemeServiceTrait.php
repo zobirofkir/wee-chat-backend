@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 trait GithubThemeServiceTrait
 {
@@ -240,6 +241,14 @@ trait GithubThemeServiceTrait
         rmdir($directory);
     }
 
+    /**
+     * Json response
+     *
+     * @param boolean $success
+     * @param array $data
+     * @param string $source
+     * @return JsonResponse
+     */
     private function jsonResponse(bool $success, array $data, string $source): JsonResponse
     {
         return response()->json([
@@ -249,4 +258,44 @@ trait GithubThemeServiceTrait
         ]);
     }
 
+    /**
+     * Remove old theme
+     *
+     * @param [type] $store
+     * @param integer $userId
+     * @return void
+     */
+    private function removeOldTheme($store, int $userId): void
+    {
+        if ($store->theme && $store->theme !== request('themeName')) {
+            $oldThemePath = storage_path("app/public/themes/user_{$userId}/{$store->theme}");
+            if (is_dir($oldThemePath)) {
+                Storage::deleteDirectory($oldThemePath);
+            }
+        }
+    }
+
+    /**
+     * Json error
+     *
+     * @param string $message
+     * @param integer $status
+     * @return JsonResponse
+     */
+    private function jsonError(string $message, int $status): JsonResponse
+    {
+        return response()->json(['success' => false, 'message' => $message], $status);
+    }
+
+    /**
+     * Json success
+     *
+     * @param string $message
+     * @param array $data
+     * @return JsonResponse
+     */
+    private function jsonSuccess(string $message, array $data = []): JsonResponse
+    {
+        return response()->json(array_merge(['success' => true, 'message' => $message], $data));
+    }
 }

@@ -107,40 +107,26 @@ class GithubThemeService implements GithubThemeConstructor
      * @param string $themeName
      * @return \Illuminate\Http\JsonResponse
      */
-    public function applyTheme(Request $request, string $themeName) : JsonResponse
+    public function applyTheme(Request $request, string $themeName): JsonResponse
     {
         $user = $request->user();
 
         if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'User not authenticated'
-            ], 401);
+            return $this->jsonError('User not authenticated', 401);
         }
 
         $store = $user->store;
 
         if (!$store) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Store not found for this user'
-            ], 404);
+            return $this->jsonError('Store not found for this user', 404);
         }
 
-        if ($store->theme && $store->theme !== $themeName) {
-            $oldThemePath = storage_path("app/public/themes/user_{$user->id}/{$store->theme}");
-            if (is_dir($oldThemePath)) {
-                $this->removeDirectory($oldThemePath);
-            }
-        }
+        $this->removeOldTheme($store, $user->id);
 
         $cloneResult = $this->cloneAndExtractTheme($themeName, $user->id);
 
         if (!$cloneResult['success']) {
-            return response()->json([
-                'success' => false,
-                'message' => $cloneResult['message'] ?? 'Failed to download theme'
-            ], 500);
+            return $this->jsonError($cloneResult['message'] ?? 'Failed to download theme', 500);
         }
 
         $store->update([
@@ -149,14 +135,12 @@ class GithubThemeService implements GithubThemeConstructor
             'theme_storage_path' => $cloneResult['path']
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Theme applied and saved successfully',
+        return $this->jsonSuccess('Theme applied and saved successfully', [
             'store' => GithubThemeResource::make($store->toArray()),
-            'theme_details' => GithubThemeResource::make([
+            'theme_details' => [
                 'name' => $themeName,
                 'preview_url' => url("themes/user_{$user->id}/{$themeName}/index.html")
-            ])
+            ]
         ]);
     }
 }
