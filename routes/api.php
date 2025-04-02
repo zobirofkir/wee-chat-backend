@@ -87,7 +87,7 @@ Route::prefix('auth')->group(function () {
                 /**
                  * Update customization
                  */
-                Route::put('update', [ThemeCustomizationController::class, 'updateCustomization']);
+                Route::put('update', [ThemeCustomizationController::class, 'updateThemeCustomization']);
 
                 /**
                  * Reset customization

@@ -21,7 +21,7 @@ interface ThemeCustomizationConstructor
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateCustomization(Request $request) : JsonResponse;
+    public function updateThemeCustomization(Request $request) : JsonResponse;
 
     /**
      * Reset theme customization to default

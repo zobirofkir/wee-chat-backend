@@ -1,6 +1,8 @@
 <?php
 namespace App\Services\Services\Store\Traits;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\ThemeCustomizationResource;
+use Illuminate\Http\JsonResponse;
 
 trait ThemeCustomizationTrait
 {
@@ -89,5 +91,33 @@ trait ThemeCustomizationTrait
     private function getCustomOptions(string $path): array
     {
         return Storage::exists($path) ? json_decode(Storage::get($path), true) : [];
+    }
+
+    /**
+     * Save custom options
+     *
+     * @param integer $userId
+     * @param string $theme
+     * @param array $options
+     * @return JsonResponse
+     */
+    private function saveCustomization(int $userId, string $theme, array $options) : JsonResponse
+    {
+        $customizationPath = $this->getCustomizationPath($userId, $theme);
+        Storage::put($customizationPath, json_encode($options, JSON_PRETTY_PRINT));
+
+        return response()->json(ThemeCustomizationResource::make($options));
+    }
+
+    /**
+     * Return error response
+     *
+     * @param string $message
+     * @param integer $statusCode
+     * @return JsonResponse
+     */
+    private function errorResponse(string $message, int $statusCode) : JsonResponse
+    {
+        return response()->json(ThemeCustomizationResource::error($message), $statusCode);
     }
 }

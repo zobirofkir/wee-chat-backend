@@ -25,7 +25,7 @@ class ThemeCustomizationController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateCustomization(Request $request) : JsonResponse
+    public function updateThemeCustomization(Request $request) : JsonResponse
     {
         return ThemeCustomizationFacade::updateCustomization($request);
     }

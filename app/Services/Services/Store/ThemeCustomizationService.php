@@ -57,41 +57,23 @@ class ThemeCustomizationService implements ThemeCustomizationConstructor
      * @param Request $request
      * @return JsonResponse
      */
-    public function updateCustomization(Request $request) : JsonResponse
+    public function updateThemeCustomization(Request $request): JsonResponse
     {
         $user = $request->user();
         $store = $user->store;
 
-        if (!$store || !$store->theme) {
-            return response()->json(
-                ThemeCustomizationResource::error('No active theme found for this store'),
-                404
-            );
+        if (!$store?->theme) {
+            return $this->errorResponse('No active theme found for this store', 404);
         }
 
-        $customizationPath = $this->getCustomizationPath($user->id, $store->theme);
         $customOptions = $request->input('options');
-
-        if (!$customOptions) {
-            return response()->json(
-                ThemeCustomizationResource::error('No customization options provided'),
-                400
-            );
+        if (empty($customOptions)) {
+            return $this->errorResponse('No customization options provided', 400);
         }
 
-        try {
-            Storage::put($customizationPath, json_encode($customOptions, JSON_PRETTY_PRINT));
-
-            return response()->json(ThemeCustomizationResource::make($customOptions));
-        } catch (\Exception $e) {
-            Log::error('Failed to update theme customization: ' . $e->getMessage());
-            return response()->json(
-                ThemeCustomizationResource::error('Failed to update theme customization'),
-                500
-            );
-        }
+        return $this->saveCustomization($user->id, $store->theme, $customOptions);
     }
-
+    
     /**
      * Reset theme customization to default
      *
