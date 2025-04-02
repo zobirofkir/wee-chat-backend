@@ -11,18 +11,6 @@ use Illuminate\Support\Facades\Storage;
 trait GithubThemeServiceTrait
 {
     /**
-     * Get theme storage path
-     *
-     * @param int $userId
-     * @param string $themeName
-     * @return string
-     */
-    private function getThemeStoragePath(int $userId, string $themeName) : string
-    {
-        return "themes/user_{$userId}/{$themeName}";
-    }
-
-    /**
      * Cache key for the themes list
      *
      * @var string
@@ -33,6 +21,18 @@ trait GithubThemeServiceTrait
      * Cache TTL in seconds (1 hour)
      */
     private $cacheTtl = 3600;
+
+    /**
+     * Get theme storage path
+     *
+     * @param int $userId
+     * @param string $themeName
+     * @return string
+     */
+    private function getThemeStoragePath(int $userId, string $themeName) : string
+    {
+        return "themes/user_{$userId}/{$themeName}";
+    }
 
     /**
      * Get GitHub API headers with authentication if available
