@@ -36,6 +36,12 @@ trait StoreServiceTrait
         return "Store of " . $user->username;
     }
 
+    /**
+     * Generate store domain
+     *
+     * @param User $user
+     * @return string
+     */
     private function generateDomain(User $user) : string
     {
         $baseDomain = app()->environment('local') ? 'localhost' : 'wee-build.com';
