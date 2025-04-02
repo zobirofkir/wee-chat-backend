@@ -94,57 +94,6 @@ trait GithubThemeServiceTrait
     }
 
     /**
-     * Get theme details (private helper method)
-     *
-     * @param string $themeName
-     * @return array
-     */
-    private function getThemeDetails(string $themeName)
-    {
-        $cacheKey = "github_theme_{$themeName}";
-
-        if (Cache::has($cacheKey)) {
-            return [
-                'success' => true,
-                'theme' => Cache::get($cacheKey),
-                'source' => 'cache'
-            ];
-        }
-
-            $response = Http::withHeaders($this->getGithubHeaders())
-                ->get("https://api.github.com/repos/zobirofkir/wee-build-themes/contents/{$themeName}");
-
-            if ($response->successful()) {
-                $contents = $response->json();
-
-                $themeData = [
-                    'name' => $themeName,
-                    'files' => $contents,
-                    'preview_url' => $this->generateTestUrl($themeName)
-                ];
-
-                Cache::put($cacheKey, $themeData, $this->cacheTtl);
-
-                return [
-                    'success' => true,
-                    'theme' => $themeData,
-                    'source' => 'api'
-                ];
-            }
-
-            $errorMessage = 'Unable to fetch theme details';
-            if ($response->json('message')) {
-                $errorMessage = $response->json('message');
-            }
-
-            return [
-                'success' => false,
-                'message' => $errorMessage,
-                'status_code' => $response->status()
-            ];
-    }
-
-    /**
      * Clone the theme repository and extract specific theme
      *
      * @param string $themeName
@@ -153,38 +102,38 @@ trait GithubThemeServiceTrait
      */
     private function cloneAndExtractTheme(string $themeName, int $userId): array
     {
-            $tempDir = storage_path("app/temp/themes/{$userId}/{$themeName}");
-            $targetDir = storage_path("app/public/themes/user_{$userId}/{$themeName}");
+        $tempDir = storage_path("app/temp/themes/{$userId}/{$themeName}");
+        $targetDir = storage_path("app/public/themes/user_{$userId}/{$themeName}");
 
-            if (!file_exists($tempDir)) {
-                mkdir($tempDir, 0755, true);
-            }
-            if (!file_exists($targetDir)) {
-                mkdir($targetDir, 0755, true);
-            }
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
 
-            $repoUrl = 'https://github.com/zobirofkir/wee-build-themes.git';
-            $command = "git clone {$repoUrl} {$tempDir}/repo";
+        $repoUrl = 'https://github.com/zobirofkir/wee-build-themes.git';
+        $command = "git clone {$repoUrl} {$tempDir}/repo";
 
-            exec($command, $output, $returnVar);
+        exec($command, $output, $returnVar);
 
-            if ($returnVar !== 0) {
-                throw new \Exception('Failed to clone repository');
-            }
+        if ($returnVar !== 0) {
+            throw new \Exception('Failed to clone repository');
+        }
 
-            $themeSource = "{$tempDir}/repo/{$themeName}";
-            if (!is_dir($themeSource)) {
-                throw new \Exception("Theme {$themeName} not found in repository");
-            }
+        $themeSource = "{$tempDir}/repo/{$themeName}";
+        if (!is_dir($themeSource)) {
+            throw new \Exception("Theme {$themeName} not found in repository");
+        }
 
-            $this->copyDirectory($themeSource, $targetDir);
+        $this->copyDirectory($themeSource, $targetDir);
 
-            $this->removeDirectory($tempDir);
+        $this->removeDirectory($tempDir);
 
-            return [
-                'success' => true,
-                'path' => $targetDir
-            ];
+        return [
+            'success' => true,
+            'path' => $targetDir
+        ];
     }
 
     /**
