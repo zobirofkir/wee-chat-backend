@@ -39,7 +39,7 @@ trait GithubThemeServiceTrait
      *
      * @return array
      */
-    protected function getGithubHeaders(): array
+    private function getGithubHeaders(): array
     {
         $headers = [];
         if (config('services.github.token')) {
